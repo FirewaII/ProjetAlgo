@@ -1,7 +1,7 @@
 package models;
 import java.util.Map;
 
-public class Customer extends Location{
+public class Customer extends models.Location {
     private String cat;
     private Map<String, Integer> demand;
 

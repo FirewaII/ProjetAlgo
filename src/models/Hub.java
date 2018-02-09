@@ -1,6 +1,6 @@
 package models;
 
-class Hub extends Location{
+class Hub extends models.Location {
     int opCost;
 
     public Hub(int noHub,String city, int opCost, double longitude, double latitude){
@@ -13,7 +13,6 @@ class Hub extends Location{
     }
 
     public int getOpCost() {
-
         return opCost;
     }
 }
