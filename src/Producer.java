@@ -1,7 +1,7 @@
 class Producer{
     Map <String, Integer> supply;
 
-    public Producer(int noProd, String name, double longitude, double latitude, Map<String, Integer>){
+    public Producer(int noProd, String name, double longitude, double latitude, Map<String, Integer> supply){
         super(noProd,name,longitude,latitude);
         this.supply = supply;
     }
