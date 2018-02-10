@@ -59,25 +59,23 @@ class Location {
      * using the Google Maps DistanceMatrix API.
      * The returned value is an Integer and is expressed in meters.
      *
-     * @param  loc  Location object to which the distance will be calculated
-     * @return      distance in meters
+     * @param loc Location object to which the distance will be calculated
+     * @return distance in meters
      */
-    public int getDistance(Location loc) throws Exception {
+    public long getDistance(Location loc) throws Exception {
         assert loc != null;
 
         // Prep URL
-        String originLat = String.valueOf(this.getLatitude());
-        String originLong = String.valueOf(this.getLongitude());
-        String origin = String.format("%s,%s", originLong, originLat);
+        String origin = String.format("%s,%s", this.getLongitude(), this.getLatitude());
+        String destination = String.format("%s,%s", loc.getLongitude(), loc.getLatitude());
 
-        String destLat = String.valueOf(loc.getLatitude());
-        String destLong = String.valueOf(loc.getLongitude());
-        String destination = String.format("%s,%s", destLong, destLat);
-
+        // Shortest path by time
         // https://maps.googleapis.com/maps/api/distancematrix/json?origins=45.17823,5.74396&destinations=45.21854,5.66133&key=AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc
-        String apiUrl = "https://maps.googleapis.com/maps/api/distancematrix/json";
+        // Shortest path with alternatives
+        // https://maps.googleapis.com/maps/api/directions/json?origin=45.17823,5.74396&destination=45.21854,5.66133&alternatives=true&key=AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc
+        String apiUrl = "https://maps.googleapis.com/maps/api/directions/json";
         String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
-        String s = String.format("%s?origins=%s&destinations=%s&key=%s", apiUrl, origin, destination, apiKey);
+        String s = String.format("%s?origin=%s&destination=%s&alternatives=true&key=%s", apiUrl, origin, destination, apiKey);
         URL url = null;
         try {
             url = new URL(s);
@@ -94,7 +92,7 @@ class Location {
             e.printStackTrace();
         }
 
-        String read = new String();
+        String read = "";
         assert scan != null;
         while (scan.hasNext()) {
             read += scan.nextLine();
@@ -108,14 +106,20 @@ class Location {
         }
 
 
-        // Get distance result
+        // Get distance results
+        long distanceResult = Long.MAX_VALUE;
         try {
-            JSONArray rows = (JSONArray) jsonObj.get("rows");
-            JSONObject subElem1 = (JSONObject) rows.get(0);
-            JSONArray elements = (JSONArray) subElem1.get("elements");
-            JSONObject subElem2 = (JSONObject) elements.get(0);
-            JSONObject distance = (JSONObject) subElem2.get("distance");
-            return distance.getInt("value");
+            JSONArray routes = (JSONArray) jsonObj.get("routes");
+            for (int i = 0; i < routes.length(); i++) {
+                JSONObject subElem = (JSONObject) routes.get(i);
+                JSONArray legs = (JSONArray) subElem.get("legs");
+                subElem = (JSONObject) legs.get(0);
+                JSONObject distance = (JSONObject) subElem.get("distance");
+                if (distance.getInt("value") < distanceResult) {
+                    distanceResult = distance.getInt("value");
+                }
+            }
+            return distanceResult;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -127,7 +131,7 @@ class Location {
         Location l1 = new Location(1, "client1", 45.17823, 5.74396);
         Location l2 = new Location(2, "client2", 45.21854, 5.66133);
         try {
-            System.out.println(l1.getDistance(l2));
+            System.out.println(l2.getDistance(l1));
         } catch (Exception e) {
             e.printStackTrace();
         }
