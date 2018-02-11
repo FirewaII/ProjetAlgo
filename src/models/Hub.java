@@ -1,7 +1,7 @@
 package models;
 
 class Hub extends models.Location {
-    int opCost;
+    private int opCost;
 
     public Hub(int noHub,String city, int opCost, double longitude, double latitude){
         super(noHub,city,longitude,latitude);

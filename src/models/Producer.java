@@ -2,7 +2,7 @@ package models;
 import java.util.Map;
 
 public class Producer extends models.Location {
-    Map<String, Integer> supply;
+    private Map<String, Integer> supply;
 
     public Producer(int noProd, String name, double longitude, double latitude, Map<String, Integer> supply){
         super(noProd,name,longitude,latitude);
