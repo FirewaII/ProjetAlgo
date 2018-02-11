@@ -13,7 +13,10 @@ public class Producer extends models.Location {
         return supply;
     }
 
-    public void setSupply(Map<String, Integer> supply) {
-        this.supply = supply;
+    public void setSupply(String key, int value) {
+        assert value >= 0;
+        assert !key.equals("");
+        assert !this.supply.containsKey(key);
+        this.supply.put(key, value);
     }
 }

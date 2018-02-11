@@ -27,6 +27,7 @@ class Location {
     }
 
     public void setNoPlace(int noPlace) {
+        assert noPlace>0;
         this.noPlace = noPlace;
     }
 
@@ -62,7 +63,7 @@ class Location {
      * @param loc Location object to which the distance will be calculated
      * @return distance in meters
      */
-    public long getDistance(Location loc) throws Exception {
+    public long getDistanceTo(Location loc) throws Exception {
         assert loc != null;
 
         // Prep URL
@@ -127,13 +128,18 @@ class Location {
 
     }
 
-    public static void main(String[] args) {
+    public long getDistanceFrom(Location loc) throws Exception {
+        return loc.getDistanceTo(this);
+    }
+
+    public static void main(String[] args) throws Exception {
         Location l1 = new Location(1, "client1", 45.17823, 5.74396);
         Location l2 = new Location(2, "client2", 45.21854, 5.66133);
-        try {
-            System.out.println(l2.getDistance(l1));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        System.out.println(l2.getDistanceTo(l1));
+        System.out.println(l1.getDistanceFrom(l2));
+        System.out.println(l2.getDistanceTo(l1));
+        System.out.println(l1.getDistanceFrom(l2));
+
     }
 }

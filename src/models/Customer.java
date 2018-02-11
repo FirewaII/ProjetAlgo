@@ -23,7 +23,10 @@ public class Customer extends models.Location {
         return demand;
     }
 
-    public void setDemand(Map<String, Integer> demand) {
-        this.demand = demand;
+    public void setDemand(String key, int value) {
+        assert value >= 0;
+        assert !key.equals("");
+        assert !this.demand.containsKey(key);
+        this.demand.put(key, value);
     }
 }
