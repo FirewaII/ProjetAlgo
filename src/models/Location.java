@@ -57,7 +57,7 @@ class Location {
 
     /**
      * Returns the distance between the current location and another one
-     * using the Google Maps DistanceMatrix API.
+     * using the Google Maps API.
      * The returned value is an Integer and is expressed in meters.
      *
      * @param loc Location object to which the distance will be calculated
@@ -128,6 +128,12 @@ class Location {
 
     }
 
+    /**
+     * Reverse function of getDistanceTo.
+     * Returns the distance from another location to the cuurent one.
+     * @param loc Location object to which the distance will be calculated
+     * @return distance in meters
+     */
     public long getDistanceFrom(Location loc) throws Exception {
         return loc.getDistanceTo(this);
     }
