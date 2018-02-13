@@ -2,6 +2,7 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
+    <content url="file://$MODULE_DIR$/../out" />
     <content url="file://$MODULE_DIR$/../res">
       <sourceFolder url="file://$MODULE_DIR$/../res" type="java-resource" />
     </content>
@@ -10,5 +11,16 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../res/stdlib.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../res/stdlib.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
