@@ -1,328 +1,133 @@
-/*************************************************************************
- *  Compilation:  javac Simplex.java
- *  Execution:    java Simplex
- *
- *  Given an M-by-N matrix A, an M-length vector b, and an
- *  N-length vector c, solve the  LP { max cx : Ax <= b, x >= 0 }.
- *  Assumes that b >= 0 so that x = 0 is a basic feasible solution.
- *
- *  Creates an (M+1)-by-(N+M+1) simplex tableaux with the 
- *  RHS in column M+N, the objective function in row M, and
- *  slack variables in columns M through M+N-1.
- *
- *************************************************************************/
+import gurobi.*;
 
 public class Simplex {
-    private static final double EPSILON = 1.0E-10;
-    private double[][] a;   // tableaux
-    private int M;          // number of constraints
-    private int N;          // number of original variables
 
-    private int[] basis;    // basis[i] = basic variable corresponding to row i
-                            // only needed to print out solution, not book
-
-    // sets up the simplex tableaux
-    private Simplex(double[][] A, double[] b, double[] c) {
-        M = b.length;
-        N = c.length;
-        a = new double[M+1][N+M+1];
-        for (int i = 0; i < M; i++)
-            System.arraycopy(A[i], 0, a[i], 0, N);
-        for (int i = 0; i < M; i++) a[i][N+i] = 1.0;
-        System.arraycopy(c, 0, a[M], 0, N);
-        for (int i = 0; i < M; i++) a[i][M+N] = b[i];
-
-        basis = new int[M];
-        for (int i = 0; i < M; i++) basis[i] = N + i;
-
-        solve();
-
-        // check optimality conditions
-        assert check(A, b, c);
-    }
-
-    // run simplex algorithm starting from initial BFS
-    private void solve() {
-        while (true) {
-
-            // find entering column q
-            int q = bland();
-            if (q == -1) break;  // optimal
-
-            // find leaving row p
-            int p = minRatioRule(q);
-            if (p == -1) throw new RuntimeException("Linear program is unbounded");
-
-            // pivot
-            pivot(p, q);
-
-            // update basis
-            basis[p] = q;
-        }
-    }
-
-    // lowest index of a non-basic column with a positive cost
-    private int bland() {
-        for (int j = 0; j < M + N; j++)
-            if (a[M][j] > 0) return j;
-        return -1;  // optimal
-    }
-
-   // index of a non-basic column with most positive cost
-    private int dantzig() {
-        int q = 0;
-        for (int j = 1; j < M + N; j++)
-            if (a[M][j] > a[M][q]) q = j;
-
-        if (a[M][q] <= 0) return -1;  // optimal
-        else return q;
-    }
-
-    // find row p using min ratio rule (-1 if no such row)
-    private int minRatioRule(int q) {
-        int p = -1;
-        for (int i = 0; i < M; i++) {
-            if (a[i][q] <= 0) {
-                continue;
-            }
-            else if (p == -1) p = i;
-            else if ((a[i][M+N] / a[i][q]) < (a[p][M+N] / a[p][q])) p = i;
-        }
-        return p;
-    }
-
-    // pivot on entry (p, q) using Gauss-Jordan elimination
-    private void pivot(int p, int q) {
-
-        // everything but row p and column q
-        for (int i = 0; i <= M; i++)
-            for (int j = 0; j <= M + N; j++)
-                if (i != p && j != q) a[i][j] -= a[p][j] * a[i][q] / a[p][q];
-
-        // zero out column q
-        for (int i = 0; i <= M; i++)
-            if (i != p) a[i][q] = 0.0;
-
-        // scale row p
-        for (int j = 0; j <= M + N; j++)
-            if (j != q) a[p][j] /= a[p][q];
-        a[p][q] = 1.0;
-    }
-
-    // return optimal objective value
-    public double value() {
-        return -a[M][M+N];
-    }
-
-    // return primal solution vector
-    private double[] primal() {
-        double[] x = new double[N];
-        for (int i = 0; i < M; i++)
-            if (basis[i] < N) x[basis[i]] = a[i][M+N];
-        return x;
-    }
-
-    // return dual solution vector
-    private double[] dual() {
-        double[] y = new double[M];
-        for (int i = 0; i < M; i++)
-            y[i] = -a[M][N+i];
-        return y;
-    }
-
-
-    // is the solution primal feasible?
-    private boolean isPrimalFeasible(double[][] A, double[] b) {
-        double[] x = primal();
-
-        // check that x >= 0
-        for (int j = 0; j < x.length; j++) {
-            if (x[j] < 0.0) {
-                StdOut.println("x[" + j + "] = " + x[j] + " is negative");
-                return false;
-            }
-        }
-
-        // check that Ax <= b
-        for (int i = 0; i < M; i++) {
-            double sum = 0.0;
-            for (int j = 0; j < N; j++) {
-                sum += A[i][j] * x[j];
-            }
-            if (sum > b[i] + EPSILON) {
-                StdOut.println("not primal feasible");
-                StdOut.println("b[" + i + "] = " + b[i] + ", sum = " + sum);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // is the solution dual feasible?
-    private boolean isDualFeasible(double[][] A, double[] c) {
-        double[] y = dual();
-
-        // check that y >= 0
-        for (int i = 0; i < y.length; i++) {
-            if (y[i] < 0.0) {
-                StdOut.println("y[" + i + "] = " + y[i] + " is negative");
-                return false;
-            }
-        }
-
-        // check that yA >= c
-        for (int j = 0; j < N; j++) {
-            double sum = 0.0;
-            for (int i = 0; i < M; i++) {
-                sum += A[i][j] * y[i];
-            }
-            if (sum < c[j] - EPSILON) {
-                StdOut.println("not dual feasible");
-                StdOut.println("c[" + j + "] = " + c[j] + ", sum = " + sum);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // check that optimal value = cx = yb
-    private boolean isOptimal(double[] b, double[] c) {
-        double[] x = primal();
-        double[] y = dual();
-        double value = value();
-
-        // check that value = cx = yb
-        double value1 = 0.0;
-        for (int j = 0; j < x.length; j++)
-            value1 += c[j] * x[j];
-        double value2 = 0.0;
-        for (int i = 0; i < y.length; i++)
-            value2 += y[i] * b[i];
-        if (Math.abs(value - value1) > EPSILON || Math.abs(value - value2) > EPSILON) {
-            StdOut.println("value = " + value + ", cx = " + value1 + ", yb = " + value2);
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean check(double[][]A, double[] b, double[] c) {
-        return isPrimalFeasible(A, b) && isDualFeasible(A, c) && isOptimal(b, c);
-    }
-
-    // print tableaux
-    public void show() {
-        StdOut.println("M = " + M);
-        StdOut.println("N = " + N);
-        for (int i = 0; i <= M; i++) {
-            for (int j = 0; j <= M + N; j++) {
-                StdOut.printf("%7.2f ", a[i][j]);
-            }
-            StdOut.println();
-        }
-        StdOut.println("value = " + value());
-        for (int i = 0; i < M; i++)
-            if (basis[i] < N) StdOut.println("x_" + basis[i] + " = " + a[i][M+N]);
-        StdOut.println();
-    }
-
-
-    private static void test(double[][] A, double[] b, double[] c) {
-        Simplex lp = new Simplex(A, b, c);
-        StdOut.println("value = " + lp.value());
-        double[] x = lp.primal();
-        for (int i = 0; i < x.length; i++)
-            StdOut.println("x[" + i + "] = " + x[i]);
-        double[] y = lp.dual();
-        for (int j = 0; j < y.length; j++)
-            StdOut.println("y[" + j + "] = " + y[j]);
-    }
-
-    private static void test1() {
-        double[][] A = {
-            { -1,  1,  0 },
-            {  1,  4,  0 },
-            {  2,  1,  0 },
-            {  3, -4,  0 },
-            {  0,  0,  1 },
-        };
-        double[] c = { 1, 1, 1 };
-        double[] b = { 5, 45, 27, 24, 4 };
-        test(A, b, c);
-    }
-
-
-    // x0 = 12, x1 = 28, opt = 800
-    private static void test2() {
-        double[] c = {  13.0,  23.0 };
-        double[] b = { 480.0, 160.0, 1190.0 };
-        double[][] A = {
-            {  5.0, 15.0 },
-            {  4.0,  4.0 },
-            { 35.0, 20.0 },
-        };
-        test(A, b, c);
-    }
-
-    // unbounded
-    private static void test3() {
-        double[] c = { 2.0, 3.0, -1.0, -12.0 };
-        double[] b = {  3.0,   2.0 };
-        double[][] A = {
-            { -2.0, -9.0,  1.0,  9.0 },
-            {  1.0,  1.0, -1.0, -2.0 },
-        };
-        test(A, b, c);
-    }
-
-    // degenerate - cycles if you choose most positive objective function coefficient
-    private static void test4() {
-        double[] c = { 10.0, -57.0, -9.0, -24.0 };
-        double[] b = {  0.0,   0.0,  1.0 };
-        double[][] A = {
-            { 0.5, -5.5, -2.5, 9.0 },
-            { 0.5, -1.5, -0.5, 1.0 },
-            { 1.0,  0.0,  0.0, 0.0 },
-        };
-        test(A, b, c);
-    }
-
-
-
-    // test client
     public static void main(String[] args) {
+        try {
 
-        try                 { test1();             }
-        catch (Exception e) { e.printStackTrace(); }
-        StdOut.println("--------------------------------");
+            // Warehouse demand in thousands of units
+            double Demand[] = new double[] { 15, 18, 14, 20 };
 
-        try                 { test2();             }
-        catch (Exception e) { e.printStackTrace(); }
-        StdOut.println("--------------------------------");
+            // Plant capacity in thousands of units
+            double Capacity[] = new double[] { 20, 22, 17, 19, 18 };
 
-        try                 { test3();             }
-        catch (Exception e) { e.printStackTrace(); }
-        StdOut.println("--------------------------------");
+            // Fixed costs for each plant
+            double FixedCosts[] =
+                    new double[] { 12000, 15000, 17000, 13000, 16000 };
 
-        try                 { test4();             }
-        catch (Exception e) { e.printStackTrace(); }
-        StdOut.println("--------------------------------");
+            // Transportation costs per thousand units
+            double TransCosts[][] =
+                    new double[][] { { 4000, 2000, 3000, 2500, 4500 },
+                            { 2500, 2600, 3400, 3000, 4000 },
+                            { 1200, 1800, 2600, 4100, 3000 },
+                            { 2200, 2600, 3100, 3700, 3200 } };
 
+            // Number of plants and warehouses
+            int nPlants = Capacity.length;
+            int nWarehouses = Demand.length;
 
-        int M = Integer.parseInt(args[0]);
-        int N = Integer.parseInt(args[1]);
-        double[] c = new double[N];
-        double[] b = new double[M];
-        double[][] A = new double[M][N];
-        for (int j = 0; j < N; j++)
-            c[j] = StdRandom.uniform(1000);
-        for (int i = 0; i < M; i++)
-            b[i] = StdRandom.uniform(1000);
-        for (int i = 0; i < M; i++)
-            for (int j = 0; j < N; j++)
-                A[i][j] = StdRandom.uniform(100);
-        Simplex lp = new Simplex(A, b, c);
-        StdOut.println(lp.value());
+            // Model
+            GRBEnv env = new GRBEnv();
+            GRBModel model = new GRBModel(env);
+            model.set(GRB.StringAttr.ModelName, "facility");
+
+            // Plant open decision variables: open[p] == 1 if plant p is open.
+            GRBVar[] open = new GRBVar[nPlants];
+            for (int p = 0; p < nPlants; ++p) {
+                open[p] = model.addVar(0, 1, FixedCosts[p], GRB.BINARY, "Open" + p);
+            }
+
+            // Transportation decision variables: how much to transport from
+            // a plant p to a warehouse w
+            GRBVar[][] transport = new GRBVar[nWarehouses][nPlants];
+            for (int w = 0; w < nWarehouses; ++w) {
+                for (int p = 0; p < nPlants; ++p) {
+                    transport[w][p] =
+                            model.addVar(0, GRB.INFINITY, TransCosts[w][p], GRB.CONTINUOUS,
+                                    "Trans" + p + "." + w);
+                }
+            }
+
+            // The objective is to minimize the total fixed and variable costs
+            model.set(GRB.IntAttr.ModelSense, GRB.MINIMIZE);
+
+            // Production constraints
+            // Note that the right-hand limit sets the production to zero if
+            // the plant is closed
+            for (int p = 0; p < nPlants; ++p) {
+                GRBLinExpr ptot = new GRBLinExpr();
+                for (int w = 0; w < nWarehouses; ++w) {
+                    ptot.addTerm(1.0, transport[w][p]);
+                }
+                GRBLinExpr limit = new GRBLinExpr();
+                limit.addTerm(Capacity[p], open[p]);
+                model.addConstr(ptot, GRB.LESS_EQUAL, limit, "Capacity" + p);
+            }
+
+            // Demand constraints
+            for (int w = 0; w < nWarehouses; ++w) {
+                GRBLinExpr dtot = new GRBLinExpr();
+                for (int p = 0; p < nPlants; ++p) {
+                    dtot.addTerm(1.0, transport[w][p]);
+                }
+                model.addConstr(dtot, GRB.EQUAL, Demand[w], "Demand" + w);
+            }
+
+            // Guess at the starting point: close the plant with the highest
+            // fixed costs; open all others
+
+            // First, open all plants
+            for (int p = 0; p < nPlants; ++p) {
+                open[p].set(GRB.DoubleAttr.Start, 1.0);
+            }
+
+            // Now close the plant with the highest fixed cost
+            System.out.println("Initial guess:");
+            double maxFixed = -GRB.INFINITY;
+            for (int p = 0; p < nPlants; ++p) {
+                if (FixedCosts[p] > maxFixed) {
+                    maxFixed = FixedCosts[p];
+                }
+            }
+            for (int p = 0; p < nPlants; ++p) {
+                if (FixedCosts[p] == maxFixed) {
+                    open[p].set(GRB.DoubleAttr.Start, 0.0);
+                    System.out.println("Closing plant " + p + "\n");
+                    break;
+                }
+            }
+
+            // Use barrier to solve root relaxation
+            model.set(GRB.IntParam.Method, GRB.METHOD_BARRIER);
+
+            // Solve
+            model.optimize();
+
+            // Print solution
+            System.out.println("\nTOTAL COSTS: " + model.get(GRB.DoubleAttr.ObjVal));
+            System.out.println("SOLUTION:");
+            for (int p = 0; p < nPlants; ++p) {
+                if (open[p].get(GRB.DoubleAttr.X) > 0.99) {
+                    System.out.println("Plant " + p + " open:");
+                    for (int w = 0; w < nWarehouses; ++w) {
+                        if (transport[w][p].get(GRB.DoubleAttr.X) > 0.0001) {
+                            System.out.println("  Transport " +
+                                    transport[w][p].get(GRB.DoubleAttr.X) +
+                                    " units to warehouse " + w);
+                        }
+                    }
+                } else {
+                    System.out.println("Plant " + p + " closed!");
+                }
+            }
+
+            // Dispose of model and environment
+            model.dispose();
+            env.dispose();
+
+        } catch (GRBException e) {
+            System.out.println("Error code: " + e.getErrorCode() + ". " +
+                    e.getMessage());
+        }
     }
-
 }
