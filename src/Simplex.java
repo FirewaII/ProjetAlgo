@@ -108,16 +108,16 @@ public class Simplex {
             System.out.println("SOLUTION:");
             for (int p = 0; p < nPlants; ++p) {
                 if (open[p].get(GRB.DoubleAttr.X) > 0.99) {
-                    System.out.println("Plant " + p + " open:");
+                    System.out.println("Hub " + p + " open:");
                     for (int w = 0; w < nWarehouses; ++w) {
                         if (transport[w][p].get(GRB.DoubleAttr.X) > 0.0001) {
                             System.out.println("  Transport " +
                                     transport[w][p].get(GRB.DoubleAttr.X) +
-                                    " units to warehouse " + w);
+                                    " units to customer " + w);
                         }
                     }
                 } else {
-                    System.out.println("Plant " + p + " closed!");
+                    System.out.println("Hub " + p + " closed!");
                 }
             }
 
