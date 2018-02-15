@@ -8,5 +8,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="gurobi" level="project" />
+    <orderEntry type="library" name="poi" level="project" />
+    <orderEntry type="library" name="stdlib" level="project" />
   </component>
 </module>
