@@ -1,10 +1,10 @@
 package Tools;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,17 +12,17 @@ import java.io.FileInputStream;
 public class ExcelTools {
     public static void readExcelFile(File file) {
         try {
-            POIFSFileSystem fs = new POIFSFileSystem(new FileInputStream(file));
-            HSSFWorkbook wb = new HSSFWorkbook(fs);
-            HSSFSheet sheet = wb.getSheetAt(0);
-            HSSFRow row;
-            HSSFCell cell;
+            FileInputStream fs = new FileInputStream(file);
+            XSSFWorkbook wb = new XSSFWorkbook(fs);
+            XSSFSheet sheet = wb.getSheetAt(0);
+            XSSFRow row;
+            XSSFCell cell;
 
             int rows; // No of rows
             rows = sheet.getPhysicalNumberOfRows();
 
             int cols = 0; // No of columns
-            int tmp = 0;
+            int tmp;
 
             // This trick ensures that we get the data properly even if it doesn't start from first few rows
             for (int i = 0; i < 10 || i < rows; i++) {
@@ -39,7 +39,7 @@ public class ExcelTools {
                     for (int c = 0; c < cols; c++) {
                         cell = row.getCell((short) c);
                         if (cell != null) {
-                            System.out.println(cell.getCellFormula());
+                            System.out.println(cell.getRawValue());
                         }
                     }
                 }
