@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jom">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/res/jom.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

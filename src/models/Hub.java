@@ -1,6 +1,6 @@
 package models;
 
-class Hub extends models.Location {
+public class Hub extends models.Location {
     private int opCost;
 
     public Hub(int noHub,String city, int opCost, double longitude, double latitude){
