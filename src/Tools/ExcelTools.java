@@ -1,6 +1,5 @@
 package Tools;
 
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -20,6 +19,9 @@ public class ExcelTools {
 
             int rows; // No of rows
             rows = sheet.getPhysicalNumberOfRows();
+
+            int nbSheets;
+            nbSheets = wb.getNumberOfSheets();
 
             int cols = 0; // No of columns
             int tmp;

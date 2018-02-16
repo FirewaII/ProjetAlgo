@@ -1,16 +1,10 @@
 <component name="libraryTable">
   <library name="poi-3">
     <CLASSES>
-      <root url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17" />
-      <root url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17/ooxml-lib" />
-      <root url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17/lib" />
+      <root url="file://$PROJECT_DIR$/res/poi-3.17" />
     </CLASSES>
-    <JAVADOC>
-      <root url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17/docs/apidocs" />
-    </JAVADOC>
+    <JAVADOC />
     <SOURCES />
-    <jarDirectory url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17" recursive="false" />
-    <jarDirectory url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17/lib" recursive="false" />
-    <jarDirectory url="file://$USER_HOME$/1A/AlgoProg/libs/poi-3.17/ooxml-lib" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/res/poi-3.17" recursive="false" />
   </library>
 </component>
