@@ -1,7 +1,22 @@
 # ProjetAlgo
 
+## GLPK
+
+### Windows
+Copy glpk.dll located in ProjetAlgo/res/ to C:\Windows\System32
+
+### Linux
+ In some Linux distibutions, GLPK is automatically installed.<br />
+ Check if you can find the file libglpk.so in your system, usually in /usr/local/lib/libglpk.so. If so, you already have what you need.
+
+Otherwise
+<pre>
+$ sudo apt-get install glpk
+</pre>
 
 
+## Modelisation
+```
 // Produits transférés d'un endroit à un autre par produit par période
 y[farm][hub][product][period] 
 y[hub][client][product][period] 
@@ -17,6 +32,6 @@ isOpen[hub][period]
 
 // Cout d'ouverture d'un hub
 openCost[hub]
+```
 
 
-// 
