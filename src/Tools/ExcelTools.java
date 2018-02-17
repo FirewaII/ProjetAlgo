@@ -1,5 +1,8 @@
 package Tools;
 
+import models.Customer;
+import models.Hub;
+import models.Producer;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -11,88 +14,99 @@ import java.io.FileInputStream;
 import models.Location;
 
 public class ExcelTools {
-    public static void readExcelFile(File file) {
+
+    public static Location[] readLocations(File file, String sheetName){
+        /* Generate an array of Locations */
+        Location[] locations = null;
         try {
             FileInputStream fs = new FileInputStream(file);
             XSSFWorkbook wb = new XSSFWorkbook(fs);
             XSSFRow row;
             XSSFCell cell;
 
-            int nbSheets;
-            nbSheets = wb.getNumberOfSheets();
+            XSSFSheet sheet = wb.getSheet(sheetName);
 
-            for(int j = 0 ; j < nbSheets ; j++) {
+            int rows = sheet.getPhysicalNumberOfRows(); // Number of rows
+            int col = 0;
+            int colNum = 0;
+            int colName = -1;
+            int colGPS1 = -1;
+            int colGPS2 = -1;
+            row = sheet.getRow(0);
 
-                XSSFSheet sheet = wb.getSheetAt(j);
 
-                int rows; // No of rows
-                rows = sheet.getPhysicalNumberOfRows();
-
-                int cols = 0; // No of columns
-                int tmp;
-
-                // This trick ensures that we get the data properly even if it doesn't start from first few rows
-                for (int i = 0; i < 10 || i < rows; i++) {
-                    row = sheet.getRow(i);
-                    if (row != null) {
-                        tmp = sheet.getRow(i).getPhysicalNumberOfCells();
-                        if (tmp > cols) cols = tmp;
-                    }
+            /* Get Columns of latitude and longitude */
+            while (colGPS1 == -1 || colGPS2 == -1 || colName == -1){
+                cell = row.getCell(col);
+                String cellValue = cell.getStringCellValue();
+                if (cellValue.equals("Entreprise") || cellValue.equals("Client") || cellValue.equals("Ville")) {
+                    colName = col;
+                } else if (cell.getStringCellValue().equals("CoordGPS1")) {
+                    colGPS1 = col;
+                } else if (cell.getStringCellValue().equals("CoordGPS2")) {
+                    colGPS2 = col;
                 }
-
-                for (int r = 0; r < rows; r++) {
-                    row = sheet.getRow(r);
-                    if (row != null) {
-                        for (int c = 0; c < cols; c++) {
-                            cell = row.getCell((short) c);
-                            if (cell != null) {
-                                System.out.println(cell.getRawValue());
-                            }
-                        }
-                    }
-                }
+                col++;
             }
-        } catch (Exception ioe) {
-            ioe.printStackTrace();
-        }
-    }
 
-    public static void readProducers(File file){
-        try {
-            FileInputStream fs = new FileInputStream(file);
-            XSSFWorkbook wb = new XSSFWorkbook(fs);
-            XSSFRow row;
-            XSSFCell cell;
+            /* Full location array */
+            locations = new Location[rows-1];
 
-            XSSFSheet sheet = wb.getSheet("DonnéesProd");
-
-            int rows; // No of rows
-            rows = sheet.getPhysicalNumberOfRows();
-
-            int cols = 0; // No of columns
-            int tmp;
-
-            for (int r = 0; r < rows; r++) {
+            for (int r = 1 ; r < rows ; r++) {
                 row = sheet.getRow(r);
-                if (row != null) {
-                    for (int c = 0; c < cols; c++) {
-                        cell = row.getCell((short) c);
-                        if (cell != null) {
-                            System.out.println(cell.getRawValue());
-                        }
-                    }
+                if (row != null){
+                    /* Get values of current row */
+                    int noPlace = Integer.parseInt(row.getCell(colNum).getRawValue());
+                    String name = row.getCell(colName).getStringCellValue();
+                    double longitude = Double.parseDouble(row.getCell(colGPS1).getRawValue());
+                    double latitude = Double.parseDouble(row.getCell(colGPS2).getRawValue());
+
+                    locations[r-1] = new Location(noPlace, name, longitude, latitude);
                 }
             }
         } catch (Exception ioe){
             ioe.printStackTrace();
         }
+
+        return locations;
     }
 
-    public static void readCustomers(){
+    public static Producer[] readProducers(File file){
+        Location[] locations = readLocations(file, "DonnéesFermes");
+        Producer[] producers = new Producer[locations.length];
 
+        if(locations != null) {
+            for (int i = 0; i < locations.length; i++) {
+                Location currentLoc = locations[i];
+                producers[i] = new Producer(currentLoc.getNoPlace(), currentLoc.getName(), currentLoc.getLongitude(), currentLoc.getLatitude(), null);
+            }
+        }
+        return producers;
     }
 
-    public static void readHubs(){
-        
+    public static Customer[] readCustomers(File file){
+        Location[] locations = readLocations(file, "DonnéesClients");
+        Customer[] customers = new Customer[locations.length];
+
+        if (locations != null){
+            for (int i = 0; i < locations.length; i++) {
+                Location currentLoc = locations[i];
+                customers[i] = new Customer(currentLoc.getNoPlace(), currentLoc.getName(), null, currentLoc.getLongitude(), currentLoc.getLatitude(), null);
+            }
+        }
+        return customers;
+    }
+
+    public static Hub[] readHubs(File file){
+        Location[] locations = readLocations(file, "DonnéesFermes");
+        Hub[] hubs = new Hub[locations.length];
+
+        if(locations != null) {
+            for (int i = 0; i < locations.length; i++) {
+                Location currentLoc = locations[i];
+                hubs[i] = new Hub(currentLoc.getNoPlace(), currentLoc.getName(), -1, currentLoc.getLongitude(), currentLoc.getLatitude());
+            }
+        }
+        return hubs;
     }
 }

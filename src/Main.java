@@ -9,20 +9,17 @@
 //    }
 //}
 
+import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
 
+import java.io.File;
 import java.util.stream.*;
 
 import static java.lang.Integer.max;
 
 public class Main {
-    // Sets
-    Producer[] producers; // producers set
-    Hub[] hubs; // hubs set
-    Customer[] customers; // customers set
-
     // Data
     Boolean[] isOpen; // decides if a hub is open
     int[] openCost; // opening cost of hubs
@@ -45,6 +42,14 @@ public class Main {
 
 
     public static void main(String[] args) {
+        /* Get Excel file */
+        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
+
+        /* Initialise variables */
+        Producer[] producers = ExcelTools.readProducers(excelFile);
+        Hub[] hubs = ExcelTools.readHubs(excelFile);
+        Customer[] customers = ExcelTools.readCustomers(excelFile);
+
         int N = 5; // number of elements in each set
 
         /* Create the optimization problem object */
