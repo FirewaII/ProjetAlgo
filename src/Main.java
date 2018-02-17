@@ -65,7 +65,7 @@ public class Main {
         op.addConstraint(" sum(sum(x,2),1) <= 1");  // for each k \sum_{ij} x_{ijk} <= 1
 
         /* Call the solver to solve the problem */
-        op.solve("glpk", "solverLibraryName", "glpk_4_47");
+        op.solve("glpk", "solverLibraryName", "glpk");
         if (!op.solutionIsOptimal()) throw new RuntimeException("An optimal solution was not found");
 
         /* Print the solution */

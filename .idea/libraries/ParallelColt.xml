@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="ParallelColt">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/res/ParallelColt" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/res/ParallelColt" recursive="false" />
+  </library>
+</component>

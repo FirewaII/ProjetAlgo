@@ -9,7 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
-class Location {
+public class Location {
     private int noPlace;
     private String name;
     private double longitude;
