@@ -16,5 +16,6 @@
     <orderEntry type="library" name="commons-math3-3.6" level="project" />
     <orderEntry type="library" name="ParallelColt" level="project" />
     <orderEntry type="library" name="jna-4.5.1" level="project" />
+    <orderEntry type="library" name="JOM-0.3.1" level="project" />
   </component>
 </module>
