@@ -79,9 +79,9 @@ public class Main {
             isOpen[i] = 1;
         }
 
-        Customer[] customers = {new Customer(1, "Client 1", "Supermarché", 45.35276, 5.56985),
-                new Customer(2, "Client 2", "Supermarché", 45.17232, 5.71741),
-                new Customer(3, "Client 3", "Supermarché", 45.05104, 5.08196),
+        Customer[] customers = {new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
+                new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
+                new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
                 new Customer(4, "Client 4", "Supermarché", 45.5967377, 5.0944433),
                 new Customer(5, "Client 5", "Supermarché", 45.6732628, 5.4846254)};
 
