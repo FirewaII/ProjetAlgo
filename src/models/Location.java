@@ -63,7 +63,7 @@ public class Location {
      * @param loc Location object to which the distance will be calculated
      * @return distance in meters
      */
-    public long getDistanceTo(Location loc) throws Exception {
+    public int getDistanceTo(Location loc) throws Exception {
         assert loc != null;
 
         // Prep URL
@@ -108,7 +108,7 @@ public class Location {
 
 
         // Get distance results
-        long distanceResult = Long.MAX_VALUE;
+        int distanceResult = Integer.MAX_VALUE;
         try {
             JSONArray routes = (JSONArray) jsonObj.get("routes");
             for (int i = 0; i < routes.length(); i++) {

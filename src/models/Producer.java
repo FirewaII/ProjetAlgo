@@ -1,4 +1,6 @@
 package models;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Producer extends models.Location {
@@ -7,6 +9,11 @@ public class Producer extends models.Location {
     public Producer(int noProd, String name, double longitude, double latitude, Map<String, Integer> supply){
         super(noProd,name,longitude,latitude);
         this.supply = supply;
+    }
+
+    public Producer(int noProd, String name, double longitude, double latitude){
+        super(noProd,name,longitude,latitude);
+        this.supply = new HashMap<String, Integer>();
     }
 
     public Map<String, Integer> getSupply() {
