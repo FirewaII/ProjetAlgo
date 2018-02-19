@@ -10,15 +10,19 @@
 //}
 
 import Tools.ExcelTools;
+import cern.colt.matrix.tdouble.DoubleMatrix1D;
+import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.*;
 
+import static java.lang.Double.sum;
 import static java.lang.Integer.max;
 
 public class Main {
@@ -93,15 +97,15 @@ public class Main {
 
 
         // Offer / Demand
-        int[][] offer = new int[producers.length][nbProduits];
-        int[][] demand = new int[customers.length][nbProduits];
+        double[][] offer = new double[producers.length][nbProduits];
+        double[][] demand = new double[customers.length][nbProduits];
 
 
         for (int i = 0; i < producers.length; i++) {
             Map prodSupply = producers[i].getSupply();
             int j = 0;
             for (Object value : prodSupply.values()) {
-                offer[i][j] = (Integer) value;
+                offer[i][j] = (double) value;
                 j++;
             }
         }
@@ -110,86 +114,99 @@ public class Main {
             Map custDemand = customers[i].getDemand();
             int j = 0;
             for (Object value : custDemand.values()) {
-                demand[i][j] = (Integer) value;
+                demand[i][j] = (double) value;
                 j++;
             }
         }
 
         int totalOffer = 0;
-        for (int[] subOffer : offer) {
-            totalOffer += IntStream.of(subOffer).sum();
+        for (double[] subOffer : offer) {
+            totalOffer += Arrays.stream(subOffer).sum();
         }
 
         int totalDemand = 0;
-        for (int[] subDemand : demand) {
-            totalDemand += IntStream.of(subDemand).sum();
+        for (double[] subDemand : demand) {
+            totalDemand += Arrays.stream(subDemand).sum();
         }
-
 
         // Big M
         int M = max(IntStream.of(totalOffer).sum(), IntStream.of(totalDemand).sum());
 
-
-        // Distances
-
+        // Shipping cost using distances
             // Prod => Hub
-        int[][] dPH = new int[producers.length][hubs.length];
+        double[][] cPH = new double[producers.length][hubs.length];
             // Hub => Cust
-        int[][] dHC = new int[hubs.length][customers.length];
+        double[][] cHC = new double[hubs.length][customers.length];
             // Prod => Cust
-        int[][] dPC = new int[producers.length][customers.length];
+        double[][] cPC = new double[producers.length][customers.length];
             // Hub => Hub
-        int[][] dHH = new int[hubs.length][hubs.length];
+        double[][] cHH = new double[hubs.length][hubs.length];
 
-        System.out.println("Starting distance calculations");
-        // Calcul des distances
+        System.out.println("Starting shipping costs calculation...");
+        // Calcul des couts de transport en fonction de la distance (km)
         for (int i = 0; i < producers.length; i++) {
             for (int j = 0; j < hubs.length; j++) {
-                dPH[i][j] = producers[i].getDistanceTo(hubs[j]);
+                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX;
                 for (int h = 0; h < hubs.length; h++) {
-                    dHH[j][h] = hubs[j].getDistanceTo(hubs[h]);
+                    cHH[j][h] = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
                 }
                 for (int k = 0; k < customers.length; k++) {
-                    dHC[j][k] = hubs[j].getDistanceTo(customers[k]);
+                    cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX;
                 }
             }
             for (int k = 0; k < customers.length; k++) {
-                dPC[i][k] = producers[i].getDistanceTo(customers[k]);
+                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX;
             }
         }
-        System.out.println("Distances calculated");
+        System.out.println("Costs calculated");
 
-        // Transport cost
 
-        int N = 5; // number of elements in each set
+
+//        int N = 5; // number of elements in each set
 
         /* Create the optimization problem object */
         OptimizationProblem op = new OptimizationProblem();
 
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("x", true, new int[]{N, N, N}, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("isOpen", true, isOpen, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length});
+        op.addDecisionVariable("yHC",true, new int[]{hubs.length, customers.length});
+        op.addDecisionVariable("yPC",true, new int[]{producers.length, customers.length});
+        op.addDecisionVariable("yHH",true, new int[]{hubs.length, hubs.length});
+
 
         /* Set value for the input parameter c_{ijk} */
-        op.setInputParameter("c", new DoubleMatrixND(new int[]{N, N, N}, "random"));
+        op.setInputParameter("openCost", new DoubleMatrixND(openCost));
+        op.setInputParameter("cPH", new DoubleMatrixND(cPH));
+        op.setInputParameter("cHC", new DoubleMatrixND(cHC));
+        op.setInputParameter("cPC", new DoubleMatrixND(cPC));
+        op.setInputParameter("cHH", new DoubleMatrixND(cHH));
 
         /* Sets the objective function */
-        op.setObjectiveFunction("maximize", "sum(x .* c)");
+//        op.setObjectiveFunction("maximize", "sum(x .* c)");
+        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
 
         /* Add the constraints */
-        op.addConstraint(" sum(sum(x,3),2) <= 1");  // for each i \sum_{jk} x_{ijk} <= 1
-        op.addConstraint(" sum(sum(x,3),1) <= 1");  // for each j \sum_{ik} x_{ijk} <= 1
-        op.addConstraint(" sum(sum(x,2),1) <= 1");  // for each k \sum_{ij} x_{ijk} <= 1
+        op.addConstraint("sum(sum(yPH,2),1) >= 0");
+        op.addConstraint("sum(sum(yPC,2),1) >= 0");
+        op.addConstraint("sum(sum(yHC,2),1) >= 0");
+        op.addConstraint("sum(sum(yHH,2),1) >= 0");
+
+        // Produits sortants - produits entrants ( H -> H + H -> C - P -> Hub )
+        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2)1) - offer >= 0");
+        op.addConstraint("sum(sum(yHH,2),1) + sum(sum(yHC,2)1) - sum(sum(yPH,2),1) >= 0");
+        op.addConstraint("demand - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) >= 0");
 
         /* Call the solver to solve the problem */
         op.solve("glpk", "solverLibraryName", "glpk");
         if (!op.solutionIsOptimal()) throw new RuntimeException("An optimal solution was not found");
 
         /* Print the solution */
-        DoubleMatrixND sol = op.getPrimalSolution("x");
-        for (int c1 = 0; c1 < N; c1++)
-            for (int c2 = 0; c2 < N; c2++)
-                for (int c3 = 0; c3 < N; c3++)
-                    if (sol.get(new int[]{c1, c2, c3}) == 1)
-                        System.out.println(c1 + " - " + c2 + " - " + c3);
+        System.out.println(op.getPrimalSolution("isOpen"));
+        System.out.println(op.getPrimalSolution("cPH"));
+        System.out.println(op.getPrimalSolution("cHC"));
+        System.out.println(op.getPrimalSolution("cPC"));
+        System.out.println(op.getPrimalSolution("cHH"));
+
     }
 }
