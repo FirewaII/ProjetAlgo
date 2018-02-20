@@ -63,7 +63,7 @@ public class Main {
         double costHtoX = 0.5;
 
         // Sets
-        Producer[] producers = {new Producer(0, "Fiction", 0, 0),
+        Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
                 new Producer(1, "Ferme1", 45.14429, 5.20811),
                 new Producer(2, "Ferme2", 45.71531, 5.67431),
                 new Producer(3, "Ferme3", 45.52911, 5.73944)};
@@ -85,7 +85,7 @@ public class Main {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 0, 0),
+        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
                 new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
                 new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
                 new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
@@ -166,47 +166,59 @@ public class Main {
         // Hub => Hub
         double[][] cHH = new double[hubs.length][hubs.length];
 
-        System.out.println("Starting shipping costs calculation...");
+        System.out.println("Calculating shipping costs...");
         // Calcul des couts de transport en fonction de la distance (km)
-//        int coef;
+
+        int coefP; // Coef prod fictif
+        int coefC; // Coef client fictif
+
 //        for (int i = 0; i < producers.length; i++) {
-//            if (producers[i].getName().contains("Fiction")) {
-//                coef = 0;
+//            if (producers[i].getName().equals("Fiction")) {
+//                coefP = 0;
 //            } else {
-//                coef = 1;
+//                coefP = 1;
 //            }
 //            for (int j = 0; j < hubs.length; j++) {
-//                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coef;
-//                for (int h = 0; h < hubs.length; h++) {
-//                    cHH[j][h] = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
-//                }
-//                for (int k = 0; k < customers.length; k++) {
-//                    if (customers[i].getName().contains("Fiction")) {
-//                        coef = 0;
-//                    } else {
-//                        coef = 1;
-//                    }
-//                    cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coef;
-//                }
+//                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coefP;
 //            }
 //            for (int k = 0; k < customers.length; k++) {
-//                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coef;
+//                if (customers[i].getName().equals("Fiction")) {
+//                    coefC = 0;
+//                } else {
+//                    coefC = 1;
+//                }
+//                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coefC * coefP;
 //            }
 //        }
-        cPH = new double[][]{{0.0, 56.0, 67.0}, {0.0, 49.0, 95.0}, {0.0, 30.0, 57.0}};
+//
+//        for (int j = 0; j < hubs.length; j++) {
+//            for (int h = 0; h < hubs.length; h++) {
+//                cHH[j][h] = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
+//            }
+//            for (int k = 0; k < customers.length; k++) {
+//                if (customers[k].getName().equals("Fiction")) {
+//                    coefC = 0;
+//                } else {
+//                    coefC = 1;
+//                }
+//                cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coefC;
+//            }
+//        }
+
+        cPH = new double[][]{{0.0, 0.0}, {56.0, 67.0}, {49.0, 95.0}, {30.0, 57.0}};
         cHC = new double[][]{{0.0, 13.5, 28.5, 11.5, 30.5, 21.5}, {0.0, 1.0, 23.0, 2.0, 43.0, 42.5}};
-        cPC = new double[][]{{0.0, 66.0, 109.0, 62.0, 68.0, 82.0}, {0.0, 88.0, 55.0, 98.0, 61.0, 22.0}, {0.0, 52.0, 46.0, 52.0, 61.0, 29.0}};
+        cPC = new double[][]{{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, {0.0, 66.0, 109.0, 62.0, 68.0, 82.0}, {0.0, 88.0, 55.0, 98.0, 61.0, 22.0}, {0.0, 52.0, 46.0, 52.0, 61.0, 29.0}};
         cHH = new double[][]{{0.0, 14.0}, {13.5, 0.0}};
         System.out.println("Costs calculated");
 
 
-        int N = 1; // number of elements in each set
+        int N = 2; // number of elements in each set
 
         /* Create the optimization problem object */
         OptimizationProblem op = new OptimizationProblem();
 
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("isOpen", true, new int[]{2, 1}, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("isOpen", true, new int[]{1,1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length});
         op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length});
         op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length});
@@ -214,9 +226,11 @@ public class Main {
 
 
         /* Set value for the input parameters */
-        op.setInputParameter("openCost", openCost);
+        op.setInputParameter("openCost", new DoubleMatrixND(openCost));
         op.setInputParameter("offer", new DoubleMatrixND(offer));
         op.setInputParameter("demand", new DoubleMatrixND(demand));
+        op.setInputParameter("totalOffer", new DoubleMatrixND(totalOffer));
+        op.setInputParameter("totalDemand", new DoubleMatrixND(totalDemand));
 //
         op.setInputParameter("cPH", new DoubleMatrixND(cPH));
         op.setInputParameter("cHC", new DoubleMatrixND(cHC));
@@ -225,22 +239,22 @@ public class Main {
 
 
         /* Add the constraints */
-        op.addConstraint("sum(sum(yPH,2),1) >= 0");
-        op.addConstraint("sum(sum(yPC,2),1) >= 0");
-        op.addConstraint("sum(sum(yHC,2),1) >= 0");
-        op.addConstraint("sum(sum(yHH,2),1) >= 0");
+        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2),1) == totalOffer");
+        op.addConstraint("sum(sum(yHC,2),1) + sum(sum(yPC,2),1) == totalDemand");
+        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yHH,2),1) - sum(sum(yHH,2),1) - sum(sum(yHC,2),1) == totalOffer - totalDemand");
 
         // Produits sortants - produits entrants ( H -> H + H -> C - P -> Hub )
-        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2)1) - sum(offer,2) == 0");
-        op.addConstraint("sum(sum(yHH,2),1) + sum(sum(yHC,2)1) - sum(sum(yPH,2),1) - sum(sum(yHH,2),1) == 0");
-        op.addConstraint("sum(demand,2) - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) == 0");
+//        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2)1) - sum(offer,2) == 0");
+//        op.addConstraint("sum(sum(yHH,2),1) + sum(sum(yHC,2)1) - sum(sum(yPH,2),1) - sum(sum(yHH,2),1) == 0");
+//        op.addConstraint("sum(demand,2) - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) == 0");
 
         /* Sets the objective function */
-//        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
-        op.setObjectiveFunction("minimize", " sum(cPH .* yPH)");
+        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
+//        op.setObjectiveFunction("minimize", "sum(cHH .* yHH)");
 
 
         /* Call the solver to solve the problem */
+        System.out.println(op.toString());
         op.solve("glpk");
         if (!op.solutionIsOptimal()) throw new RuntimeException("An optimal solution was not found");
 
