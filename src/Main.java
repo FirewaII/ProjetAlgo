@@ -52,9 +52,9 @@ public class Main {
         File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
 
         /* Initialise variables */
-//        Producer[] producers = ExcelTools.readProducers(excelFile);
-//        Hub[] hubs = ExcelTools.readHubs(excelFile);
-//        Customer[] customers = ExcelTools.readCustomers(excelFile);
+        Producer[] producers = ExcelTools.readProducers(excelFile);
+        Hub[] hubs = ExcelTools.readHubs(excelFile);
+        Customer[] customers = ExcelTools.readCustomers(excelFile);
 
         // Test Vars
         Random ran = new Random();
@@ -214,10 +214,12 @@ public class Main {
 
         int N = 2; // number of elements in each set
 
-        /* Create the optimization problem object */
+ Create the optimization problem object
+
         OptimizationProblem op = new OptimizationProblem();
 
-        /* Add the decision variables to the problem */
+ Add the decision variables to the problem
+
         op.addDecisionVariable("isOpen", true, new int[]{1,1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length});
         op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length});
@@ -225,7 +227,8 @@ public class Main {
         op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length});
 
 
-        /* Set value for the input parameters */
+ Set value for the input parameters
+
         op.setInputParameter("openCost", new DoubleMatrixND(openCost));
         op.setInputParameter("offer", new DoubleMatrixND(offer));
         op.setInputParameter("demand", new DoubleMatrixND(demand));
@@ -238,7 +241,8 @@ public class Main {
         op.setInputParameter("cHH", new DoubleMatrixND(cHH));
 
 
-        /* Add the constraints */
+ Add the constraints
+
         op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2),1) == totalOffer");
         op.addConstraint("sum(sum(yHC,2),1) + sum(sum(yPC,2),1) == totalDemand");
         op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yHH,2),1) - sum(sum(yHH,2),1) - sum(sum(yHC,2),1) == totalOffer - totalDemand");
@@ -248,17 +252,20 @@ public class Main {
 //        op.addConstraint("sum(sum(yHH,2),1) + sum(sum(yHC,2)1) - sum(sum(yPH,2),1) - sum(sum(yHH,2),1) == 0");
 //        op.addConstraint("sum(demand,2) - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) == 0");
 
-        /* Sets the objective function */
+ Sets the objective function
+
         op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
 //        op.setObjectiveFunction("minimize", "sum(cHH .* yHH)");
 
 
-        /* Call the solver to solve the problem */
+ Call the solver to solve the problem
+
         System.out.println(op.toString());
         op.solve("glpk");
         if (!op.solutionIsOptimal()) throw new RuntimeException("An optimal solution was not found");
 
-        /* Print the solution */
+ Print the solution
+
         System.out.println(op.getPrimalSolution("isOpen"));
 //        System.out.println(op.getPrimalSolution("cPH"));
 //        System.out.println(op.getPrimalSolution("cHC"));
