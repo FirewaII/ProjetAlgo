@@ -11,11 +11,6 @@
 
 import Tools.ExcelTools;
 import cern.colt.matrix.tdouble.DoubleMatrix1D;
-import cern.colt.matrix.tdouble.DoubleMatrix2D;
-import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
-import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix1D;
-import cern.colt.matrix.tdouble.impl.DenseDoubleMatrix2D;
-import cern.colt.matrix.tint.impl.DenseIntMatrix1D;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
@@ -27,6 +22,7 @@ import java.util.Random;
 import java.util.stream.*;
 //import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra.*;
 import static java.lang.Integer.max;
+import static java.lang.Integer.sum;
 
 
 public class Main {
@@ -67,11 +63,15 @@ public class Main {
         double costHtoX = 0.5;
 
         // Sets
-        Producer[] producers = {new Producer(1, "Ferme1", 45.14429, 5.20811),
+        Producer[] producers = {new Producer(0, "Fiction", 0, 0),
+                new Producer(1, "Ferme1", 45.14429, 5.20811),
                 new Producer(2, "Ferme2", 45.71531, 5.67431),
                 new Producer(3, "Ferme3", 45.52911, 5.73944)};
 
         for (Producer producer : producers) {
+            if (producer.getName().equals("Fiction")) {
+                continue;
+            }
             producer.setSupply("Produits laitiers vache", ran.nextInt(50));
             producer.setSupply("Produits laitiers chèvre", ran.nextInt(70));
             producer.setSupply("Fruits", ran.nextInt(50));
@@ -85,13 +85,17 @@ public class Main {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-        Customer[] customers = {new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
+        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 0, 0),
+                new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
                 new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
                 new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
                 new Customer(4, "Client 4", "Supermarché", 45.5967377, 5.0944433),
                 new Customer(5, "Client 5", "Supermarché", 45.6732628, 5.4846254)};
 
         for (Customer customer : customers) {
+            if (customer.getName().equals("Fiction")) {
+                continue;
+            }
             customer.setDemand("Produits laitiers vache", ran.nextInt(30));
             customer.setDemand("Produits laitiers chèvre", ran.nextInt(40));
             customer.setDemand("Fruits", ran.nextInt(30));
@@ -121,18 +125,36 @@ public class Main {
             }
         }
 
-        int totalOffer = 0;
+        int[] prodOffer = new int[nbProduits];
         for (double[] subOffer : offer) {
-            totalOffer += Arrays.stream(subOffer).sum();
+            prodOffer[0] += subOffer[0];
+            prodOffer[1] += subOffer[1];
+            prodOffer[2] += subOffer[2];
         }
 
-        int totalDemand = 0;
+        int[] prodDemand = new int[nbProduits];
         for (double[] subDemand : demand) {
-            totalDemand += Arrays.stream(subDemand).sum();
+            prodDemand[0] += subDemand[0];
+            prodDemand[1] += subDemand[1];
+            prodDemand[2] += subDemand[2];
         }
 
         // Big M
-        int M = max(IntStream.of(totalOffer).sum(), IntStream.of(totalDemand).sum());
+        int totalOffer = IntStream.of(prodOffer).sum();
+        int totalDemand = IntStream.of(prodDemand).sum();
+        int M = max(totalOffer, totalDemand);
+
+        // Fictive offer/demand
+        for (int i = 0; i < nbProduits; i++) {
+            if (prodDemand[i] > prodOffer[i]) {
+                producers[0].setSupply("Produit fictif " + i, prodDemand[i] - prodOffer[i]);
+                customers[0].setDemand("Produit fictif " + i, 0);
+            } else {
+                customers[0].setDemand("Produit fictif " + i, prodOffer[i] - prodDemand[i]);
+                producers[0].setSupply("Produit fictif " + i, 0);
+            }
+        }
+
 
         // Shipping cost using distances
         // Prod => Hub
@@ -146,42 +168,53 @@ public class Main {
 
         System.out.println("Starting shipping costs calculation...");
         // Calcul des couts de transport en fonction de la distance (km)
+//        int coef;
 //        for (int i = 0; i < producers.length; i++) {
+//            if (producers[i].getName().contains("Fiction")) {
+//                coef = 0;
+//            } else {
+//                coef = 1;
+//            }
 //            for (int j = 0; j < hubs.length; j++) {
-//                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX;
+//                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coef;
 //                for (int h = 0; h < hubs.length; h++) {
 //                    cHH[j][h] = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
 //                }
 //                for (int k = 0; k < customers.length; k++) {
-//                    cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX;
+//                    if (customers[i].getName().contains("Fiction")) {
+//                        coef = 0;
+//                    } else {
+//                        coef = 1;
+//                    }
+//                    cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coef;
 //                }
 //            }
 //            for (int k = 0; k < customers.length; k++) {
-//                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX;
+//                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coef;
 //            }
 //        }
-        cPH = new double[][]{{56.0, 67.0}, {49.0, 95.0}, {30.0, 57.0}};
-        cHC = new double[][]{{13.5, 28.5, 11.5, 30.5, 21.5}, {1.0, 23.0, 2.0, 43.0, 42.5}};
-        cPC = new double[][]{{66.0, 109.0, 62.0, 68.0, 82.0}, {88.0, 55.0, 98.0, 61.0, 22.0}, {52.0, 46.0, 52.0, 61.0, 29.0}};
+        cPH = new double[][]{{0.0, 56.0, 67.0}, {0.0, 49.0, 95.0}, {0.0, 30.0, 57.0}};
+        cHC = new double[][]{{0.0, 13.5, 28.5, 11.5, 30.5, 21.5}, {0.0, 1.0, 23.0, 2.0, 43.0, 42.5}};
+        cPC = new double[][]{{0.0, 66.0, 109.0, 62.0, 68.0, 82.0}, {0.0, 88.0, 55.0, 98.0, 61.0, 22.0}, {0.0, 52.0, 46.0, 52.0, 61.0, 29.0}};
         cHH = new double[][]{{0.0, 14.0}, {13.5, 0.0}};
         System.out.println("Costs calculated");
 
 
-        int N = 2; // number of elements in each set
+        int N = 1; // number of elements in each set
 
         /* Create the optimization problem object */
         OptimizationProblem op = new OptimizationProblem();
 
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("isOpen", true, new int[]{N, N}, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("isOpen", true, new int[]{2, 1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length});
         op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length});
         op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length});
         op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length});
 
 
-        /* Set value for the input parameter c_{ijk} */
-        op.setInputParameter("openCost", new int[]{N, N}, "random");
+        /* Set value for the input parameters */
+        op.setInputParameter("openCost", openCost);
         op.setInputParameter("offer", new DoubleMatrixND(offer));
         op.setInputParameter("demand", new DoubleMatrixND(demand));
 //
@@ -198,14 +231,13 @@ public class Main {
         op.addConstraint("sum(sum(yHH,2),1) >= 0");
 
         // Produits sortants - produits entrants ( H -> H + H -> C - P -> Hub )
-        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2)1) - offer >= 0");
-        op.addConstraint("sum(sum(yHH,2),1) + sum(sum(yHC,2)1) - sum(sum(yPH,2),1) >= 0");
-        op.addConstraint("demand - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) >= 0");
+        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2)1) - sum(offer,2) == 0");
+        op.addConstraint("sum(sum(yHH,2),1) + sum(sum(yHC,2)1) - sum(sum(yPH,2),1) - sum(sum(yHH,2),1) == 0");
+        op.addConstraint("sum(demand,2) - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) == 0");
 
         /* Sets the objective function */
-//        op.setObjectiveFunction("maximize", "sum(x .* c)");
-        op.setObjectiveFunction("minimize", "sum(openCost * isOpen) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
-//        op.setObjectiveFunction("minimize", "sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
+//        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
+        op.setObjectiveFunction("minimize", " sum(cPH .* yPH)");
 
 
         /* Call the solver to solve the problem */
@@ -214,10 +246,10 @@ public class Main {
 
         /* Print the solution */
         System.out.println(op.getPrimalSolution("isOpen"));
-        System.out.println(op.getPrimalSolution("cPH"));
-        System.out.println(op.getPrimalSolution("cHC"));
-        System.out.println(op.getPrimalSolution("cPC"));
-        System.out.println(op.getPrimalSolution("cHH"));
+//        System.out.println(op.getPrimalSolution("cPH"));
+//        System.out.println(op.getPrimalSolution("cHC"));
+//        System.out.println(op.getPrimalSolution("cPC"));
+//        System.out.println(op.getPrimalSolution("cHH"));
 
     }
 }
