@@ -166,6 +166,8 @@ public class Main {
         // Hub => Hub
         double[][] cHH = new double[hubs.length][hubs.length];
 
+
+
         System.out.println("Calculating shipping costs...");
         // Calcul des couts de transport en fonction de la distance (km)
 
@@ -212,18 +214,12 @@ public class Main {
         System.out.println("Costs calculated");
 
 
-        int N = 2; // number of elements in each set
 
         /* Create the optimization problem object */
         OptimizationProblem op = new OptimizationProblem();
 
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("isOpen", true, new int[]{1,1}, 0, 1);  // name, isInteger, size , minValue, maxValue
-        op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length});
-        op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length});
-        op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length});
-        op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length});
-
+        op.addDecisionVariable("isOpen", true, new int[]{hubs.length,1}, 0, 1);  // name, isInteger, size , minValue, maxValue
 
         /* Set value for the input parameters */
         op.setInputParameter("openCost", new DoubleMatrixND(openCost));
@@ -231,17 +227,28 @@ public class Main {
         op.setInputParameter("demand", new DoubleMatrixND(demand));
         op.setInputParameter("totalOffer", new DoubleMatrixND(totalOffer));
         op.setInputParameter("totalDemand", new DoubleMatrixND(totalDemand));
-//
+
+        // Cout de transfert
         op.setInputParameter("cPH", new DoubleMatrixND(cPH));
         op.setInputParameter("cHC", new DoubleMatrixND(cHC));
         op.setInputParameter("cPC", new DoubleMatrixND(cPC));
         op.setInputParameter("cHH", new DoubleMatrixND(cHH));
 
+        // Nombre de produits à transferer
+        op.setInputParameter("yPH",  new DoubleMatrixND(cPH));
+        op.setInputParameter("yHC",  new DoubleMatrixND(demand));
+        op.setInputParameter("yPC",  new DoubleMatrixND(cPC));
+
+
+//        op.setInputParameter("yHH",  new DoubleMatrixND(cHH));
+
 
         /* Add the constraints */
-        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2),1) == totalOffer");
-        op.addConstraint("sum(sum(yHC,2),1) + sum(sum(yPC,2),1) == totalDemand");
-        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yHH,2),1) - sum(sum(yHH,2),1) - sum(sum(yHC,2),1) == totalOffer - totalDemand");
+        op.addConstraint("sum(sum(yPC,2),1) == totalOffer");
+//        op.addConstraint("sum(sum(yPC,2),1)  == totalDemand");
+//        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2),1) == totalOffer");
+//        op.addConstraint("sum(sum(yHC,2),1) + sum(sum(yPC,2),1) == totalDemand");
+//        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yHH,2),1) - sum(sum(yHH,2),1) - sum(sum(yHC,2),1) == totalOffer - totalDemand");
 
         // Produits sortants - produits entrants ( H -> H + H -> C - P -> Hub )
 //        op.addConstraint("sum(sum(yPH,2),1) + sum(sum(yPC,2)1) - sum(offer,2) == 0");
@@ -249,8 +256,8 @@ public class Main {
 //        op.addConstraint("sum(demand,2) - sum(sum(yPC,2),1) + sum(sum(yHC,2),1) == 0");
 
         /* Sets the objective function */
-        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
-//        op.setObjectiveFunction("minimize", "sum(cHH .* yHH)");
+//        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHC .* yHC) + sum(cPC .* yPC) + sum(cHH .* yHH)");
+        op.setObjectiveFunction("minimize", "sum(cPC .* yPC)");
 
 
         /* Call the solver to solve the problem */
