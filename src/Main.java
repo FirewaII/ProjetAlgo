@@ -63,7 +63,7 @@ public class Main {
         double costHtoX = 0.5;
 
         // Sets
-        Producer[] producers = {new Producer(0, "Fiction", 0, 0),
+        Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
                 new Producer(1, "Ferme1", 45.14429, 5.20811),
                 new Producer(2, "Ferme2", 45.71531, 5.67431),
                 new Producer(3, "Ferme3", 45.52911, 5.73944)};
@@ -85,7 +85,7 @@ public class Main {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 0, 0),
+        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
                 new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
                 new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
                 new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
@@ -168,35 +168,47 @@ public class Main {
 
         System.out.println("Starting shipping costs calculation...");
         // Calcul des couts de transport en fonction de la distance (km)
-//        int coef;
-//        for (int i = 0; i < producers.length; i++) {
-//            if (producers[i].getName().contains("Fiction")) {
-//                coef = 0;
-//            } else {
-//                coef = 1;
-//            }
-//            for (int j = 0; j < hubs.length; j++) {
-//                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coef;
-//                for (int h = 0; h < hubs.length; h++) {
-//                    cHH[j][h] = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
-//                }
-//                for (int k = 0; k < customers.length; k++) {
-//                    if (customers[i].getName().contains("Fiction")) {
-//                        coef = 0;
-//                    } else {
-//                        coef = 1;
-//                    }
-//                    cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coef;
-//                }
-//            }
-//            for (int k = 0; k < customers.length; k++) {
-//                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coef;
-//            }
-//        }
-        cPH = new double[][]{{0.0, 56.0, 67.0}, {0.0, 49.0, 95.0}, {0.0, 30.0, 57.0}};
-        cHC = new double[][]{{0.0, 13.5, 28.5, 11.5, 30.5, 21.5}, {0.0, 1.0, 23.0, 2.0, 43.0, 42.5}};
-        cPC = new double[][]{{0.0, 66.0, 109.0, 62.0, 68.0, 82.0}, {0.0, 88.0, 55.0, 98.0, 61.0, 22.0}, {0.0, 52.0, 46.0, 52.0, 61.0, 29.0}};
-        cHH = new double[][]{{0.0, 14.0}, {13.5, 0.0}};
+
+        int coefP; // Coef prod fictif
+        int coefC; // Coef client fictif
+
+        for (int i = 0; i < producers.length; i++) {
+            if (producers[i].getName().equals("Fiction")) {
+                coefP = 0;
+            } else {
+                coefP = 1;
+            }
+            for (int j = 0; j < hubs.length; j++) {
+                cPH[i][j] = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coefP;
+            }
+            for (int k = 0; k < customers.length; k++) {
+                if (customers[i].getName().equals("Fiction")) {
+                    coefC = 0;
+                } else {
+                    coefC = 1;
+                }
+                cPC[i][k] = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coefC * coefP;
+            }
+        }
+
+        for (int j = 0; j < hubs.length; j++) {
+            for (int h = 0; h < hubs.length; h++) {
+                cHH[j][h] = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
+            }
+            for (int k = 0; k < customers.length; k++) {
+                if (customers[k].getName().equals("Fiction")) {
+                    coefC = 0;
+                } else {
+                    coefC = 1;
+                }
+                cHC[j][k] = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coefC;
+            }
+        }
+
+//        cPH = new double[][]{{0.0, 56.0, 67.0}, {0.0, 49.0, 95.0}, {0.0, 30.0, 57.0}};
+//        cHC = new double[][]{{0.0, 13.5, 28.5, 11.5, 30.5, 21.5}, {0.0, 1.0, 23.0, 2.0, 43.0, 42.5}};
+//        cPC = new double[][]{{0.0, 66.0, 109.0, 62.0, 68.0, 82.0}, {0.0, 88.0, 55.0, 98.0, 61.0, 22.0}, {0.0, 52.0, 46.0, 52.0, 61.0, 29.0}};
+//        cHH = new double[][]{{0.0, 14.0}, {13.5, 0.0}};
         System.out.println("Costs calculated");
 
 
