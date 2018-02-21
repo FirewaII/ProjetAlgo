@@ -157,7 +157,7 @@ public class Main {
         calculateOffer(producers, offer);
         calculateDemand(customers, demand);
 
-        System.out.println("Calculating shipping costs... This might take a while.");
+        System.out.println("Calculating shipping costs, this might take a while...");
         // Calcul des couts de transport en fonction de la distance (km)
 
         int coefP; // Coef prod fictif
@@ -259,7 +259,7 @@ public class Main {
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(sum(yPH,3),1) <= M * isOpen");
+        op.addConstraint("sum(sum(yPH,3),1) <= M * sum(isOpen,1)");
 
 
         /* Sets the objective function */
