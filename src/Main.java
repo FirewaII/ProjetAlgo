@@ -60,7 +60,7 @@ public class Main {
         // Test Vars
         Random ran = new Random();
         int nbProduits = 3;
-        int qProduits = 50000;
+        int qProduits = 100;
         double costPtoX = 1.0;
         double costHtoX = 0.5;
 
@@ -79,8 +79,8 @@ public class Main {
             producer.setSupply("Fruits", ran.nextInt(qProduits));
         }
 
-        Hub[] hubs = {new Hub(1, "Voiron", 1, 45.35276, 5.56985),
-                new Hub(2, "MIN de Grenoble", 1, 45.17232, 5.71741)};
+        Hub[] hubs = {new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
+                new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
 
         double[][] openCost = new double[hubs.length][1];
         for (int i = 0; i < hubs.length; i++) {
