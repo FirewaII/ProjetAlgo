@@ -1,28 +1,13 @@
-//import Tools.ExcelTools;
-//
-//import java.io.File;
-//
-//public class Main {
-//    public static void main(String [] args){
-//        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
-//        ExcelTools.readExcelFile(excelFile);
-//    }
-//}
 
 import Tools.ExcelTools;
-import cern.colt.matrix.tdouble.DoubleMatrix1D;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.*;
-//import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra.*;
 import static java.lang.Integer.max;
-import static java.lang.Integer.sum;
 
 
 public class Main {
@@ -186,28 +171,26 @@ public class Main {
         op.setInputParameter("cHH", new DoubleMatrixND(cHH));
 
 
-        System.out.println("Generating contraints...");
+
+        System.out.println("Generating constraints...");
+
         /* Add the constraints */
-        // Somme des produits sortants par producteur == Offre du producteur
-//        op.addConstraint("sum(sum(yPC,3),2) + sum(sum(yPH,3),2) == sum(offer,2)");
+        // produits sortants par producteur == Offre du producteur
         op.addConstraint("sum(yPC,2) + sum(yPH,2) == offer");
 
-        // Somme des produits sortants par hub == Somme des produits entrants par hub
-//        op.addConstraint("sum(sum(sum(yPH,3),2),1) == sum(sum(sum(yHC,3),2),1)");
-//        op.addConstraint("sum(yPH,1) - sum(yHH,1) - sum(yHH,2) == 0 ");
+        // produits sortants par hub == Somme des produits entrants par hub
         op.addConstraint("sum(yPH,1) - sum(yHC,2) == 0 ");
 
-        // Somme des produits entrants par client == Demande du client
-//        op.addConstraint("sum(yPC,3) + sum(yHC,3) == sum(demand,2)");
+        // produits entrants par client == Demande du client
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
         op.addConstraint("sum(sum(yPH,3),1) <= M * sum(isOpen,1)");
 
 
+        System.out.println("Setting objective functions...");
         /* Sets the objective function */
         op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
-
 
 
         /* Call the solver to solve the problem */
@@ -221,13 +204,22 @@ public class Main {
 
 
         /* Print the solution */
-        System.out.println(op.getPrimalSolution("isOpen"));
-        System.out.println(op.getPrimalSolution("yPH"));
-        System.out.println(op.getPrimalSolution("yHH"));
-        System.out.println(op.getPrimalSolution("yPC"));
-        System.out.println(op.getPrimalSolution("yHC"));
+//        System.out.println(op.getPrimalSolution("isOpen").toString());
+        System.out.println("\nOptimal cost: "+op.getOptimalCost()+"\n");
+//        System.out.println(op.getPrimalSolution("yPH"));
+//        System.out.println(op.getPrimalSolution("yHH"));
+//        System.out.println(op.getPrimalSolution("yPC"));
+//        System.out.println(op.getPrimalSolution("yHC"));
 
-        System.out.println("");
+        String[] results = op.getPrimalSolution("isOpen").toString().split(";;");
+        int idx = 0;
+        for (String res: results){
+            double open = Double.parseDouble(res);
+            if (open == 1.0) {
+                System.out.println(hubs[idx].getName()+ " is OPEN\n");
+            }
+            idx++;
+        }
     }
 
     private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH) throws Exception {
@@ -239,7 +231,7 @@ public class Main {
         double cost;
         for (int i = 0; i < producers.length; i++) {
             if (producers[i].getName().equals("Fiction")) {
-                coefP = 9000;
+                coefP = 0;
             } else {
                 coefP = 1;
             }
@@ -251,7 +243,7 @@ public class Main {
             }
             for (int k = 0; k < customers.length; k++) {
                 if (customers[i].getName().equals("Fiction")) {
-                    coefC = 9000;
+                    coefC = 0;
                 } else {
                     coefC = 1;
                 }
@@ -272,7 +264,7 @@ public class Main {
             }
             for (int k = 0; k < customers.length; k++) {
                 if (customers[k].getName().equals("Fiction")) {
-                    coefC = 9000;
+                    coefC = 0;
                 } else {
                     coefC = 1;
                 }
