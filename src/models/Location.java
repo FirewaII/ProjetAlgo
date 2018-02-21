@@ -14,7 +14,8 @@ public class Location {
     private String name;
     private double longitude;
     private double latitude;
-
+    protected static String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
+    protected static String apiKeyBackup =  "AIzaSyALdczrg5jCqau0hhcNVPilRiwmdlQdUiY";
     public Location(int noPlace, String name, double longitude, double latitude) {
         this.noPlace = noPlace;
         this.name = name;
@@ -60,22 +61,17 @@ public class Location {
      * using the Google Maps API.
      * The returned value is an Integer and is expressed in meters.
      *
-     * @param loc Location object to which the distance will be calculated
-     * @return distance in meters
+//     * @param loc Location object metersto which the distance will be calculated
+     * @return distance in
      */
-    public int getDistanceTo(Location loc) throws Exception {
-        assert loc != null;
 
-        // Prep URL
-        String origin = String.format("%s,%s", this.getLongitude(), this.getLatitude());
-        String destination = String.format("%s,%s", loc.getLongitude(), loc.getLatitude());
+    protected JSONObject gMapsAPICall(String origin, String destination, String apiKey) throws Exception {
 
         // Shortest path by time
         // https://maps.googleapis.com/maps/api/distancematrix/json?origins=45.17823,5.74396&destinations=45.21854,5.66133&key=AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc
         // Shortest path with alternatives
         // https://maps.googleapis.com/maps/api/directions/json?origin=45.17823,5.74396&destination=45.21854,5.66133&alternatives=true&key=AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc
         String apiUrl = "https://maps.googleapis.com/maps/api/directions/json";
-        String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
         String s = String.format("%s?origin=%s&destination=%s&alternatives=true&key=%s", apiUrl, origin, destination, apiKey);
         URL url = null;
         try {
@@ -103,10 +99,23 @@ public class Location {
         // Build JSON
         JSONObject jsonObj = new JSONObject(read);
         if (!jsonObj.get("status").equals("OK")) {
-            throw new Exception("API call failed");
+            if (jsonObj.get("status").equals("OVER_QUERY_LIMIT")){
+                jsonObj = gMapsAPICall(origin, destination, apiKeyBackup);
+            }else {
+                throw new Exception("API call failed");
+            }
+
         }
 
+        return jsonObj;
+    }
+    public int getDistanceTo(Location loc) throws Exception {
+        assert loc != null;
+        // Prep URL
+        String origin = String.format("%s,%s", this.getLongitude(), this.getLatitude());
+        String destination = String.format("%s,%s", loc.getLongitude(), loc.getLatitude());
 
+        JSONObject jsonObj = gMapsAPICall(origin, destination, apiKey);
         // Get distance results
         int distanceResult = Integer.MAX_VALUE;
         try {

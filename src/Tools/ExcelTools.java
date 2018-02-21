@@ -80,6 +80,10 @@ public class ExcelTools {
         if(locations != null) {
             for (int i = 0; i < locations.length; i++) {
                 Location currentLoc = locations[i];
+                if (i == 0){
+                    producers[i] = new Producer(0, "Fiction", 45.1934574,5.7682659, new HashMap<>());
+                    continue;
+                }
                 producers[i] = new Producer(currentLoc.getNoPlace(), currentLoc.getName(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<>());
             }
         }
@@ -94,8 +98,10 @@ public class ExcelTools {
 
             /* Get Producer supplies */
             sheet = wb.getSheet("DonnéesProd");
-            for (Producer producer : producers
-                    ) {
+            for (Producer producer : producers) {
+                if (producer.getName().equals("Fiction")){
+                    continue;
+                }
                 int rNum = ((producer.getNoPlace() - 1) * 3) + 1;
                 row = sheet.getRow(rNum); // get first row of current user
                 while (rNum != sheet.getPhysicalNumberOfRows() && Integer.parseInt(row.getCell(0).getRawValue()) == producer.getNoPlace()) {
@@ -150,14 +156,19 @@ public class ExcelTools {
 
                     row = sheet.getRow(currentLoc.getNoPlace());
                     cell = row.getCell(colCategorie);
-
+                    if (i == 0){
+                        customers[i] = new Customer(0, "Fiction","Supermarché", 45.1934574,5.7682659, new HashMap<>());
+                        continue;
+                    }
                     customers[i] = new Customer(currentLoc.getNoPlace(), currentLoc.getName(), cell.getStringCellValue(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<>());
                 }
 
                 /* Get Customer demands */
                 sheet = wb.getSheet("DonnéesDemandes");
-                for (Customer customer: customers
-                     ) {
+                for (Customer customer: customers) {
+                    if (customer.getName().equals("Fiction")){
+                        continue;
+                    }
                     int rNum = ((customer.getNoPlace() -1) *3)+1;
                     row = sheet.getRow(rNum); // get first row of current user
                     while(rNum != sheet.getPhysicalNumberOfRows() && Integer.parseInt(row.getCell(0).getRawValue()) == customer.getNoPlace()) {
