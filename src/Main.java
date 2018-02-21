@@ -216,7 +216,7 @@ public class Main {
         for (String res: results){
             double open = Double.parseDouble(res);
             if (open == 1.0) {
-                System.out.println(hubs[idx].getName()+ " is OPEN\n");
+                System.out.println(hubs[idx].getName()+ " hub is OPEN\n");
             }
             idx++;
         }
