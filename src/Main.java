@@ -60,6 +60,7 @@ public class Main {
         // Test Vars
         Random ran = new Random();
         int nbProduits = 3;
+        int qProduits = 50000;
         double costPtoX = 1.0;
         double costHtoX = 0.5;
 
@@ -73,9 +74,9 @@ public class Main {
             if (producer.getName().equals("Fiction")) {
                 continue;
             }
-            producer.setSupply("Produits laitiers vache", ran.nextInt(50));
-            producer.setSupply("Produits laitiers chèvre", ran.nextInt(70));
-            producer.setSupply("Fruits", ran.nextInt(50));
+            producer.setSupply("Produits laitiers vache", ran.nextInt(qProduits));
+            producer.setSupply("Produits laitiers chèvre", ran.nextInt(qProduits));
+            producer.setSupply("Fruits", ran.nextInt(qProduits));
         }
 
         Hub[] hubs = {new Hub(1, "Voiron", 1, 45.35276, 5.56985),
@@ -97,9 +98,9 @@ public class Main {
             if (customer.getName().equals("Fiction")) {
                 continue;
             }
-            customer.setDemand("Produits laitiers vache", ran.nextInt(30));
-            customer.setDemand("Produits laitiers chèvre", ran.nextInt(40));
-            customer.setDemand("Fruits", ran.nextInt(30));
+            customer.setDemand("Produits laitiers vache", ran.nextInt(qProduits));
+            customer.setDemand("Produits laitiers chèvre", ran.nextInt(qProduits));
+            customer.setDemand("Fruits", ran.nextInt(qProduits));
         }
 
         System.out.println("Calculating initial O/D...");
@@ -257,10 +258,10 @@ public class Main {
 //        op.addConstraint("sum(yPC,3) + sum(yHC,3) == sum(demand,2)");
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
+        // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
+        op.addConstraint("sum(sum(yPH,3),1) <= M * isOpen");
 
-        // Somme des produits sortant par producteur == Offre du producteur
-//        op.addConstraint("sum(sum(sum(yPH,3),2),1) +  sum(sum(sum(yPC,3),2),1) <= M");
-//        op.addConstraint("sum(sum(sum(yPC,3),2),1) + sum(sum(sum(yPH,3),2),1) == sum(sum(sum(yPC,3),2),1) + sum(sum(sum(yHC,3),2),1)");
+
         /* Sets the objective function */
         op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
 
@@ -268,7 +269,7 @@ public class Main {
 
         /* Call the solver to solve the problem */
         System.out.println("Solving...");
-        op.solve("glpk");
+        op.solve("glpk", "solverLibraryName", "res/glpk/glpk");
         if (!op.solutionIsOptimal()) {
             throw new RuntimeException("An optimal solution was not found");
         }else{
