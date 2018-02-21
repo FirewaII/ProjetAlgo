@@ -100,6 +100,9 @@ public class Location {
         JSONObject jsonObj = new JSONObject(read);
         if (!jsonObj.get("status").equals("OK")) {
             if (jsonObj.get("status").equals("OVER_QUERY_LIMIT")){
+                if (apiKey.equals(apiKeyBackup)){
+                    throw new Exception("API Call limitation quota has been reached");
+                }
                 jsonObj = gMapsAPICall(origin, destination, apiKeyBackup);
             }else {
                 throw new Exception("API call failed");
