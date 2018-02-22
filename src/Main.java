@@ -5,13 +5,23 @@ import com.jom.OptimizationProblem;
 import models.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.*;
 import static java.lang.Integer.max;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 public class Main {
-
+    static List<Integer> chosenHubs = new ArrayList<>();
     public static void main(String[] args) throws Exception {
         /* Get Excel file */
         File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
@@ -216,10 +226,65 @@ public class Main {
         for (String res: results){
             double open = Double.parseDouble(res);
             if (open == 1.0) {
+                chosenHubs.add(idx);
                 System.out.println(hubs[idx].getName()+ " hub is OPEN\n");
             }
             idx++;
         }
+        JFrame test = new JFrame("Google Maps");
+
+        //Ajout des prodcteurs
+        String producersString = "";
+        String customersString = "";
+        String hubString = "";
+        for(int i=0;i<producers.length;i++){
+            producersString+="&markers=color:blue%7Clabel:"+i+"%7C"+Double.toString(producers[i].getLongitude())+","+Double.toString(producers[i].getLatitude());
+        }
+        for(int i=0;i<customers.length;i++){
+            producersString+="&markers=color:yellow%7Clabel:"+i+"%7C"+Double.toString(customers[i].getLongitude())+","+Double.toString(customers[i].getLatitude());
+        }
+        for(int i=0;i<chosenHubs.size();i++){
+            producersString+="&markers=color:red%7Clabel:"+i+"%7C"+Double.toString(hubs[i].getLongitude())+","+Double.toString(hubs[i].getLatitude());
+        }
+
+        try {
+            String latitude = "45.1934574";
+            String longitude = "5.7682659";
+            String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?center="
+                    + latitude
+                    + ","
+                    + longitude
+                    + "&zoom=9&size=1024x1024&scale=2&maptype=roadmap"
+                    + producersString
+                    + customersString
+                    + hubString;
+            String destinationFile = "image.jpg";
+// read the map image from Google
+// then save it to a local file: image.jpg
+//
+            URL url = new URL(imageUrl);
+            InputStream is = url.openStream();
+            OutputStream os = new FileOutputStream(destinationFile);
+            byte[] b = new byte[2048];
+            int length;
+            while ((length = is.read(b)) != -1) {
+                os.write(b, 0, length);
+            }
+            is.close();
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+// create a GUI component that loads the image: image.jpg
+//
+        ImageIcon imageIcon = new ImageIcon((new ImageIcon("image.jpg"))
+                .getImage().getScaledInstance(630, 600,
+                        java.awt.Image.SCALE_SMOOTH));
+        test.add(new JLabel(imageIcon));
+// show the GUI window
+        test.setVisible(true);
+        test.pack();
     }
 
     private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH) throws Exception {
