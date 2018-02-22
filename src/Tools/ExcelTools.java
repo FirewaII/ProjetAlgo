@@ -125,14 +125,17 @@ public class ExcelTools {
 
                     for (Producer producer: producers
                          ) {
-                        if (producer.getSupply().size() != products.size()){
-                            for (String product: products
-                                 ) {
-                                if (!producer.getSupply().containsKey(product)){
-                                    producer.setSupply(product, 0);
+                        if(!producer.getName().equals("Fiction")) {
+                            if (producer.getSupply().size() != products.size()) {
+                                for (String product : products
+                                        ) {
+                                    if (!producer.getSupply().containsKey(product)) {
+                                        producer.setSupply(product, 0);
+                                    }
                                 }
                             }
                         }
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -208,11 +211,13 @@ public class ExcelTools {
 
                 for (Customer customer: customers
                         ) {
-                    if(customer.getDemand().size() != products.size()){
-                        for (String product: products
-                             ) {
-                            if(! customer.getDemand().containsKey(product)){
-                                customer.setDemand(product, 0);
+                    if (!customer.getName().equals("Fiction")) {
+                        if (customer.getDemand().size() != products.size()) {
+                            for (String product : products
+                                    ) {
+                                if (!customer.getDemand().containsKey(product)) {
+                                    customer.setDemand(product, 0);
+                                }
                             }
                         }
                     }
