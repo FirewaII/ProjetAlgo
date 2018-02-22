@@ -234,17 +234,15 @@ public class Main {
         JFrame test = new JFrame("Google Maps");
 
         //Ajout des prodcteurs
-        String producersString = "";
-        String customersString = "";
-        String hubString = "";
+        String mapString = "";
         for(int i=0;i<producers.length;i++){
-            producersString+="&markers=color:blue%7Clabel:"+i+"%7C"+Double.toString(producers[i].getLongitude())+","+Double.toString(producers[i].getLatitude());
+            mapString+="&markers=color:blue%7Clabel:"+i+"%7C"+Double.toString(producers[i].getLongitude())+","+Double.toString(producers[i].getLatitude());
         }
         for(int i=0;i<customers.length;i++){
-            producersString+="&markers=color:yellow%7Clabel:"+i+"%7C"+Double.toString(customers[i].getLongitude())+","+Double.toString(customers[i].getLatitude());
+            mapString+="&markers=color:yellow%7Clabel:"+i+"%7C"+Double.toString(customers[i].getLongitude())+","+Double.toString(customers[i].getLatitude());
         }
         for(int i=0;i<chosenHubs.size();i++){
-            producersString+="&markers=color:red%7Clabel:"+i+"%7C"+Double.toString(hubs[i].getLongitude())+","+Double.toString(hubs[i].getLatitude());
+            mapString+="&markers=color:red%7Clabel:"+i+"%7C"+Double.toString(hubs[chosenHubs.get(i)].getLongitude())+","+Double.toString(hubs[i].getLatitude());
         }
 
         try {
@@ -255,9 +253,7 @@ public class Main {
                     + ","
                     + longitude
                     + "&zoom=9&size=1024x1024&scale=2&maptype=roadmap"
-                    + producersString
-                    + customersString
-                    + hubString;
+                    + mapString;
             String destinationFile = "image.jpg";
 // read the map image from Google
 // then save it to a local file: image.jpg
