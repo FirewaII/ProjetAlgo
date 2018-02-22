@@ -16,6 +16,7 @@ public class Location {
     private double latitude;
     protected static String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
     protected static String apiKeyBackup =  "AIzaSyALdczrg5jCqau0hhcNVPilRiwmdlQdUiY";
+    protected static String apiKeySecondBackup = "AIzaSyAw9HqZDxZoBchO3m_Ahb8bXRtaPcKwR1s";
     public Location(int noPlace, String name, double longitude, double latitude) {
         this.noPlace = noPlace;
         this.name = name;
@@ -100,10 +101,15 @@ public class Location {
         JSONObject jsonObj = new JSONObject(read);
         if (!jsonObj.get("status").equals("OK")) {
             if (jsonObj.get("status").equals("OVER_QUERY_LIMIT")){
-                if (apiKey.equals(apiKeyBackup)){
+                if (apiKey.equals(apiKeySecondBackup)){
                     throw new Exception("API Call limitation quota has been reached");
                 }
-                jsonObj = gMapsAPICall(origin, destination, apiKeyBackup);
+                else if (apiKey.equals(apiKeyBackup)){
+                    jsonObj = gMapsAPICall(origin, destination, apiKeySecondBackup);
+                }
+                else{
+                    jsonObj = gMapsAPICall(origin, destination, apiKeyBackup);
+                }
             }else {
                 throw new Exception("API call failed");
             }
