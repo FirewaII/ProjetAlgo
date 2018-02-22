@@ -144,12 +144,12 @@ public class Main {
 
 
 
-        /* Create the optimization problem object */
+         Create the optimization problem object
         OptimizationProblem op = new OptimizationProblem();
 
 
         System.out.println("Adding decision variables...");
-        /* Add the decision variables to the problem */
+         Add the decision variables to the problem
         op.addDecisionVariable("isOpen", true, new int[]{hubs.length, 1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         // Nombre de produits à transferer
         op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbProduits}, 0, M);
@@ -158,7 +158,7 @@ public class Main {
         op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length, nbProduits}, 0, M);
 
         System.out.println("Preparing input parameters...");
-        /* Set value for the input parameters */
+         Set value for the input parameters
         op.setInputParameter("openCost", new DoubleMatrixND(openCost));
         op.setInputParameter("offer", new DoubleMatrixND(offer));
         op.setInputParameter("demand", new DoubleMatrixND(demand));
@@ -174,7 +174,7 @@ public class Main {
 
         System.out.println("Generating constraints...");
 
-        /* Add the constraints */
+         Add the constraints
         // produits sortants par producteur == Offre du producteur
         op.addConstraint("sum(yPC,2) + sum(yPH,2) == offer");
 
@@ -189,11 +189,11 @@ public class Main {
 
 
         System.out.println("Setting objective functions...");
-        /* Sets the objective function */
+         Sets the objective function
         op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
 
 
-        /* Call the solver to solve the problem */
+         Call the solver to solve the problem
         System.out.println("Solving...");
         op.solve("glpk", "solverLibraryName", "res/glpk/glpk");
         if (!op.solutionIsOptimal()) {
@@ -203,7 +203,7 @@ public class Main {
         }
 
 
-        /* Print the solution */
+         Print the solution
 //        System.out.println(op.getPrimalSolution("isOpen").toString());
         System.out.println("\nOptimal cost: "+op.getOptimalCost()+"\n");
 //        System.out.println(op.getPrimalSolution("yPH"));

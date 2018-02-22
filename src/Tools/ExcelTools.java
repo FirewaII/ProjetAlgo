@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import models.Location;
 
@@ -75,61 +76,75 @@ public class ExcelTools {
 
     public static Producer[] readProducers(File file){
         Location[] locations = readLocations(file, "DonnéesFermes");
-        Producer[] producers = new Producer[locations.length];
+        Producer[] producers = new Producer[locations.length + 1];
 
-        if(locations != null) {
-            for (int i = 0; i < locations.length; i++) {
-                Location currentLoc = locations[i];
-                if (i == 0){
-                    producers[i] = new Producer(0, "Fiction", 45.1934574,5.7682659, new HashMap<>());
-                    continue;
-                }
-                producers[i] = new Producer(currentLoc.getNoPlace(), currentLoc.getName(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<>());
-            }
-        }
-
-
-        try {
-            FileInputStream fs = new FileInputStream(file);
-            XSSFWorkbook wb = new XSSFWorkbook(fs);
-            XSSFRow row;
-            XSSFCell cell;
-            XSSFSheet sheet = wb.getSheet("DonnéesClients");
-
-            /* Get Producer supplies */
-            sheet = wb.getSheet("DonnéesProd");
-            for (Producer producer : producers) {
-                if (producer.getName().equals("Fiction")){
-                    continue;
-                }
-                int rNum = ((producer.getNoPlace() - 1) * 3) + 1;
-                row = sheet.getRow(rNum); // get first row of current user
-                while (rNum != sheet.getPhysicalNumberOfRows() && Integer.parseInt(row.getCell(0).getRawValue()) == producer.getNoPlace()) {
-                    String product = row.getCell(1).getStringCellValue();
-                    int col = 2;
-                    int supply = 0;
-                    cell = row.getCell(col);
-                    while (cell != null) {
-                        supply += Integer.parseInt(cell.getRawValue());
-                        col++;
-                        cell = row.getCell(col);
+            if(locations != null) {
+                try {
+                    // Set fictionnal producer
+                    producers[0] = new Producer(0, "Fiction", 45.1934574, 5.7682659, new HashMap<String, Integer>());
+                    for (int i = 0; i < locations.length; i++) {
+                        Location currentLoc = locations[i];
+                        producers[i + 1] = new Producer(currentLoc.getNoPlace(), currentLoc.getName(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<String, Integer>());
                     }
-                    producer.setSupply(product, supply);
 
-                    rNum++;
+                    FileInputStream fs = new FileInputStream(file);
+                    XSSFWorkbook wb = new XSSFWorkbook(fs);
+                    XSSFRow row;
+                    XSSFCell cell;
+                    XSSFSheet sheet = wb.getSheet("DonnéesProd");
+
+                    /* Get producer supplies */
+                    int rNum = 1;
+                    int supply;
+                    int col;
                     row = sheet.getRow(rNum);
+                    HashSet<String> products = new HashSet<>(); // Set of products
+
+                    while (rNum != sheet.getPhysicalNumberOfRows()) {
+                        String product = row.getCell(1).getStringCellValue();
+                        if (!products.contains(product)) {
+                            products.add(product);
+                        }
+
+                        col = 2;
+                        supply = 0;
+                        cell = row.getCell(col);
+                        while (cell != null) {
+                            supply += Integer.parseInt(cell.getRawValue());
+                            col++;
+                            cell = row.getCell(col);
+                        }
+
+                        Producer currentProducer = producers[Integer.parseInt(row.getCell(0).getRawValue())];
+
+                        currentProducer.setSupply(product, supply);
+
+                        rNum++;
+                        row = sheet.getRow(rNum);
+                    }
+
+                    for (Producer producer: producers
+                         ) {
+                        if (producer.getSupply().size() != products.size()){
+                            for (String product: products
+                                 ) {
+                                if (!producer.getSupply().containsKey(product)){
+                                    producer.setSupply(product, 0);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
 
         return producers;
     }
 
     public static Customer[] readCustomers(File file){
         Location[] locations = readLocations(file, "DonnéesClients");
-        Customer[] customers = new Customer[locations.length];
+        Customer[] customers = new Customer[locations.length + 1];
 
         if (locations != null){
             try {
@@ -151,47 +166,64 @@ public class ExcelTools {
                     col++;
                 }
 
-                for (int i = 0; i < locations.length; i++) {
-                    Location currentLoc = locations[i];
+                if (locations != null){
+                    // Set fictional customer
+                    customers[0] = new Customer(0, "Fiction", "Supermarché", 45.1934574, 5.7682659, new HashMap<String, Integer>());
+                    for (int i = 0; i < locations.length; i++) {
+                        Location currentLoc = locations[i];
+                        row = sheet.getRow(currentLoc.getNoPlace());
+                        cell = row.getCell(colCategorie);
 
-                    row = sheet.getRow(currentLoc.getNoPlace());
-                    cell = row.getCell(colCategorie);
-                    if (i == 0){
-                        customers[i] = new Customer(0, "Fiction","Supermarché", 45.1934574,5.7682659, new HashMap<>());
-                        continue;
+                        customers[i + 1] = new Customer(currentLoc.getNoPlace(), currentLoc.getName(), cell.getStringCellValue(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<String, Integer>());
                     }
-                    customers[i] = new Customer(currentLoc.getNoPlace(), currentLoc.getName(), cell.getStringCellValue(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<>());
                 }
+
+                sheet = wb.getSheet("DonnéesDemandes");
 
                 /* Get Customer demands */
-                sheet = wb.getSheet("DonnéesDemandes");
-                for (Customer customer: customers) {
-                    if (customer.getName().equals("Fiction")){
-                        continue;
+                int rNum = 1;
+                int demand;
+                row = sheet.getRow(rNum);
+                HashSet<String > products = new HashSet<>(); // Set of products
+                while (rNum != sheet.getPhysicalNumberOfRows()){
+                    String product = row.getCell(1).getStringCellValue();
+                    if(!products.contains(product)){
+                        products.add(product);
                     }
-                    int rNum = ((customer.getNoPlace() -1) *3)+1;
-                    row = sheet.getRow(rNum); // get first row of current user
-                    while(rNum != sheet.getPhysicalNumberOfRows() && Integer.parseInt(row.getCell(0).getRawValue()) == customer.getNoPlace()) {
-                        String product = row.getCell(1).getStringCellValue();
-                        col = 2;
-                        int demand = 0;
+                    col = 2;
+                    demand = 0;
+                    cell = row.getCell(col);
+                    while (cell != null){
+                        demand += Integer.parseInt(cell.getRawValue());
+                        col++;
                         cell = row.getCell(col);
-                        while (cell != null){
-                            demand += Integer.parseInt(cell.getRawValue());
-                            col++;
-                            cell = row.getCell(col);
-                        }
-                        customer.setDemand(product, demand);
+                    }
+                    Customer currentCustomer = customers[Integer.parseInt(row.getCell(0).getRawValue())];
 
-                        rNum++;
-                        row = sheet.getRow(rNum);
+                    currentCustomer.setDemand(product, demand);
+
+                    rNum++;
+                    row = sheet.getRow(rNum);
+                }
+
+                for (Customer customer: customers
+                        ) {
+                    if(customer.getDemand().size() != products.size()){
+                        for (String product: products
+                             ) {
+                            if(! customer.getDemand().containsKey(product)){
+                                customer.setDemand(product, 0);
+                            }
+                        }
                     }
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
         }
+
         return customers;
     }
 
