@@ -16,7 +16,7 @@ public class Location {
     private double latitude;
     protected static String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
     protected static String apiKeyBackup =  "AIzaSyALdczrg5jCqau0hhcNVPilRiwmdlQdUiY";
-    protected static String apiKeySecondBackup = "AIzaSyAw9HqZDxZoBchO3m_Ahb8bXRtaPcKwR1s";
+    protected static String apiKeySecondBackup = "AIzaSyD4BwCaD4ZIhBgD8bI-CAjS4W_dfzxAxCM";
     public Location(int noPlace, String name, double longitude, double latitude) {
         this.noPlace = noPlace;
         this.name = name;
