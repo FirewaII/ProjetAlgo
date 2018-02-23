@@ -205,6 +205,7 @@ public class Main {
 
         /* Call the solver to solve the problem */
         System.out.println("Solving...");
+
         op.solve("glpk","solverLibraryName","res/glpk/glpk");
         if (!op.solutionIsOptimal()) {
             throw new RuntimeException("An optimal solution was not found");
@@ -242,7 +243,7 @@ public class Main {
             mapString+="&markers=color:yellow%7Clabel:"+i+"%7C"+Double.toString(customers[i].getLongitude())+","+Double.toString(customers[i].getLatitude());
         }
         for(int i=0;i<chosenHubs.size();i++){
-            mapString+="&markers=color:red%7Clabel:"+i+"%7C"+Double.toString(hubs[chosenHubs.get(i)].getLongitude())+","+Double.toString(hubs[i].getLatitude());
+            mapString+="&markers=color:red%7Clabel:"+i+"%7C"+Double.toString(hubs[chosenHubs.get(i)].getLongitude())+","+Double.toString(hubs[chosenHubs.get(i)].getLatitude());
         }
 
         try {
