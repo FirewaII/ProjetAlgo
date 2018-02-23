@@ -289,8 +289,10 @@ public class Main {
 
     private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH) throws Exception {
 
-        double costPtoX = 1.0;
-        double costHtoX = 0.5;
+        double costPtoC = 1.0;
+        double costHtoC = 0.5;
+        double costPtoH = 1.0;
+        double costHtoH = 0.5;
         int coefP; // Coef prod fictif
         int coefC; // Coef client fictif
         double cost;
@@ -301,7 +303,7 @@ public class Main {
                 coefP = 1;
             }
             for (int j = 0; j < hubs.length; j++) {
-                cost = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coefP;
+                cost = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoH * coefP;
                 for (int l = 0; l < nbProduits; l++) {
                     cPH[i][j][l] = cost;
                 }
@@ -312,7 +314,7 @@ public class Main {
                 } else {
                     coefC = 1;
                 }
-                cost = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coefC * coefP;
+                cost = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoC * coefC * coefP;
                 for (int l = 0; l < nbProduits; l++) {
                     cPC[i][k][l] = cost;
                 }
@@ -322,7 +324,7 @@ public class Main {
 
         for (int j = 0; j < hubs.length; j++) {
             for (int h = 0; h < hubs.length; h++) {
-                cost = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
+                cost = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoH;
                 for (int l = 0; l < nbProduits; l++) {
                     cHH[j][h][l] = cost;
                 }
@@ -333,7 +335,7 @@ public class Main {
                 } else {
                     coefC = 1;
                 }
-                cost = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coefC;
+                cost = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoC * coefC;
 
                 for (int l = 0; l < nbProduits; l++) {
                     cHC[j][k][l] = cost;
