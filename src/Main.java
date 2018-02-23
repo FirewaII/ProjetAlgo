@@ -205,7 +205,7 @@ public class Main {
 
         /* Call the solver to solve the problem */
         System.out.println("Solving...");
-        op.solve("glpk", "solverLibraryName", "res/glpk/glpk");
+        op.solve("glpk","solverLibraryName","res/glpk/glpk");
         if (!op.solutionIsOptimal()) {
             throw new RuntimeException("An optimal solution was not found");
         }else{
@@ -233,12 +233,12 @@ public class Main {
         }
         JFrame test = new JFrame("Google Maps");
 
-        //Ajout des prodcteurs
+        //Ajout des producteurs
         String mapString = "";
-        for(int i=0;i<producers.length;i++){
+        for(int i=1;i<producers.length;i++){
             mapString+="&markers=color:blue%7Clabel:"+i+"%7C"+Double.toString(producers[i].getLongitude())+","+Double.toString(producers[i].getLatitude());
         }
-        for(int i=0;i<customers.length;i++){
+        for(int i=1;i<customers.length;i++){
             mapString+="&markers=color:yellow%7Clabel:"+i+"%7C"+Double.toString(customers[i].getLongitude())+","+Double.toString(customers[i].getLatitude());
         }
         for(int i=0;i<chosenHubs.size();i++){
