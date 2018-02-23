@@ -270,4 +270,45 @@ public class ExcelTools {
         }
         return hubs;
     }
+
+    public static double readCost(File file, String request){
+        double cost = 0;
+        String from;
+        String to;
+
+        if(request.startsWith("P")){ // P represents "Producer" other cases are for Hubs
+            from = "Producteur";
+        } else {
+            from = "Plateforme";
+        }
+
+        if(request.endsWith("C")){ // C represents "Customer" other cases are for hubs
+            to = "Client";
+        } else {
+            to = "Plateforme";
+        }
+        try {
+            FileInputStream fs = new FileInputStream(file);
+            XSSFWorkbook wb = new XSSFWorkbook(fs);
+            XSSFRow row;
+            XSSFSheet sheet = wb.getSheet("CoutsKM");
+
+            int rNum = 1;
+            boolean stop = false;
+            while (!stop){
+                row = sheet.getRow(rNum);
+                if(row.getCell(0).getStringCellValue().equals(from)){ // Check origin
+                    if(row.getCell(1).getStringCellValue().equals(to)){ // Check destination if origin is valid
+                        cost = Double.parseDouble(row.getCell(2).getRawValue());
+                        stop = true;
+                    }
+                }
+                rNum++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return cost;
+    }
 }

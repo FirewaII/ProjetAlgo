@@ -137,7 +137,7 @@ public class Main {
         System.out.println("Calculating shipping costs, this might take a while...");
         // Calcul des couts de transport en fonction de la distance (km)
 
-        calculateShippingCosts(producers, hubs, customers, nbProduits, cPH, cHC, cPC, cHH);
+        calculateShippingCosts(producers, hubs, customers, nbProduits, cPH, cHC, cPC, cHH, excelFile);
 
 //        cPH = new double[][][]{{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
 //                , {{56.0, 56.0, 56.0}, {67.0, 67.0, 67.0}}
@@ -287,12 +287,12 @@ public class Main {
         test.pack();
     }
 
-    private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH) throws Exception {
+    private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH, File excelFile) throws Exception {
 
-        double costPtoC = 1.0;
-        double costHtoC = 0.5;
-        double costPtoH = 1.0;
-        double costHtoH = 0.5;
+        double costPtoC = ExcelTools.readCost(excelFile, "PtoC");
+        double costHtoC = ExcelTools.readCost(excelFile, "HtoC");
+        double costPtoH = ExcelTools.readCost(excelFile, "PtoH");
+        double costHtoH = ExcelTools.readCost(excelFile, "HtoH");
         int coefP; // Coef prod fictif
         int coefC; // Coef client fictif
         double cost;
