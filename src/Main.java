@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.*;
+
 import static java.lang.Integer.max;
 
 import java.io.FileOutputStream;
@@ -22,9 +23,10 @@ import javax.swing.JLabel;
 
 public class Main {
     static List<Integer> chosenHubs = new ArrayList<>();
+
     public static void main(String[] args) throws Exception {
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
+        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx");
 
         System.out.println("Adding locations...");
         /* Initialise variables */
@@ -34,7 +36,7 @@ public class Main {
 
         // Test Vars
 //        Random ran = new Random();
-        int nbProduits = max(producers[1].getSupply().size(),customers[1].getDemand().size());
+        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
 //        int qProduits = 100;
 
         // Sets
@@ -85,16 +87,17 @@ public class Main {
 
         int[] prodOffer = new int[nbProduits];
         for (double[] subOffer : offer) {
-            prodOffer[0] += subOffer[0];
-            prodOffer[1] += subOffer[1];
-            prodOffer[2] += subOffer[2];
+            for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
+                prodOffer[currentProd] += subOffer[currentProd];
+
+            }
         }
 
         int[] prodDemand = new int[nbProduits];
         for (double[] subDemand : demand) {
-            prodDemand[0] += subDemand[0];
-            prodDemand[1] += subDemand[1];
-            prodDemand[2] += subDemand[2];
+            for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
+                prodDemand[currentProd] += subDemand[currentProd];
+            }
         }
 
         // Big M
@@ -106,11 +109,12 @@ public class Main {
         System.out.println("Adding fictive O/D...");
         // Fictive offer/demand
         for (int i = 0; i < nbProduits; i++) {
+            int offset = prodOffer[i] - prodDemand[i];
             if (prodDemand[i] > prodOffer[i]) {
-                producers[0].setSupply("Produit fictif " + i, prodDemand[i] - prodOffer[i]);
+                producers[0].setSupply("Produit fictif " + i, -offset);
                 customers[0].setDemand("Produit fictif " + i, 0);
             } else {
-                customers[0].setDemand("Produit fictif " + i, prodOffer[i] - prodDemand[i]);
+                customers[0].setDemand("Produit fictif " + i, offset);
                 producers[0].setSupply("Produit fictif " + i, 0);
             }
         }
@@ -133,7 +137,7 @@ public class Main {
         System.out.println("Calculating shipping costs, this might take a while...");
         // Calcul des couts de transport en fonction de la distance (km)
 
-        calculateShippingCosts(producers, hubs, customers,nbProduits, cPH, cHC, cPC, cHH);
+        calculateShippingCosts(producers, hubs, customers, nbProduits, cPH, cHC, cPC, cHH);
 
 //        cPH = new double[][][]{{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
 //                , {{56.0, 56.0, 56.0}, {67.0, 67.0, 67.0}}
@@ -181,7 +185,6 @@ public class Main {
         op.setInputParameter("cHH", new DoubleMatrixND(cHH));
 
 
-
         System.out.println("Generating constraints...");
 
         /* Add the constraints */
@@ -206,17 +209,17 @@ public class Main {
         /* Call the solver to solve the problem */
         System.out.println("Solving...");
 
-        op.solve("glpk","solverLibraryName","res/glpk/glpk");
+        op.solve("glpk", "solverLibraryName", "res/glpk/glpk");
         if (!op.solutionIsOptimal()) {
             throw new RuntimeException("An optimal solution was not found");
-        }else{
+        } else {
             System.out.println("Optimal solution found!");
         }
 
 
         /* Print the solution */
 //        System.out.println(op.getPrimalSolution("isOpen").toString());
-        System.out.println("\nOptimal cost: "+op.getOptimalCost()+"\n");
+        System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 //        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yHH"));
 //        System.out.println(op.getPrimalSolution("yPC"));
@@ -224,11 +227,11 @@ public class Main {
 
         String[] results = op.getPrimalSolution("isOpen").toString().split(";;");
         int idx = 0;
-        for (String res: results){
+        for (String res : results) {
             double open = Double.parseDouble(res);
             if (open == 1.0) {
                 chosenHubs.add(idx);
-                System.out.println(hubs[idx].getName()+ " hub is OPEN\n");
+                System.out.println(hubs[idx].getName() + " hub is OPEN\n");
             }
             idx++;
         }
@@ -236,14 +239,14 @@ public class Main {
 
         //Ajout des producteurs
         String mapString = "";
-        for(int i=1;i<producers.length;i++){
-            mapString+="&markers=color:blue%7Clabel:"+i+"%7C"+Double.toString(producers[i].getLongitude())+","+Double.toString(producers[i].getLatitude());
+        for (int i = 1; i < producers.length; i++) {
+            mapString += "&markers=color:blue%7Clabel:" + i + "%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
         }
-        for(int i=1;i<customers.length;i++){
-            mapString+="&markers=color:yellow%7Clabel:"+i+"%7C"+Double.toString(customers[i].getLongitude())+","+Double.toString(customers[i].getLatitude());
+        for (int i = 1; i < customers.length; i++) {
+            mapString += "&markers=color:yellow%7Clabel:" + i + "%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
         }
-        for(int i=0;i<chosenHubs.size();i++){
-            mapString+="&markers=color:red%7Clabel:"+i+"%7C"+Double.toString(hubs[chosenHubs.get(i)].getLongitude())+","+Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+        for (int i = 0; i < chosenHubs.size(); i++) {
+            mapString += "&markers=color:red%7Clabel:" + i + "%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
         }
 
         try {
@@ -299,7 +302,7 @@ public class Main {
             }
             for (int j = 0; j < hubs.length; j++) {
                 cost = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoX * coefP;
-                for (int l = 0; l<nbProduits; l++){
+                for (int l = 0; l < nbProduits; l++) {
                     cPH[i][j][l] = cost;
                 }
             }
@@ -310,7 +313,7 @@ public class Main {
                     coefC = 1;
                 }
                 cost = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoX * coefC * coefP;
-                for (int l = 0; l<nbProduits; l++){
+                for (int l = 0; l < nbProduits; l++) {
                     cPC[i][k][l] = cost;
                 }
 
@@ -320,8 +323,8 @@ public class Main {
         for (int j = 0; j < hubs.length; j++) {
             for (int h = 0; h < hubs.length; h++) {
                 cost = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoX;
-                for (int l = 0; l<nbProduits; l++){
-                    cHH[j][h][l] =  cost;
+                for (int l = 0; l < nbProduits; l++) {
+                    cHH[j][h][l] = cost;
                 }
             }
             for (int k = 0; k < customers.length; k++) {
@@ -330,10 +333,10 @@ public class Main {
                 } else {
                     coefC = 1;
                 }
-                cost =                 (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coefC;
+                cost = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoX * coefC;
 
-                for (int l = 0; l<nbProduits; l++){
-                    cHC[j][k][l] =  cost;
+                for (int l = 0; l < nbProduits; l++) {
+                    cHC[j][k][l] = cost;
                 }
             }
         }
