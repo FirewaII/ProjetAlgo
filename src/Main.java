@@ -26,8 +26,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx");
-
+        File excelFile = new File(args[0]);
         System.out.println("Adding locations...");
         /* Initialise variables */
         Producer[] producers = ExcelTools.readProducers(excelFile);
@@ -209,7 +208,7 @@ public class Main {
         /* Call the solver to solve the problem */
         System.out.println("Solving...");
 
-        op.solve("glpk", "solverLibraryName", "res/glpk/glpk");
+        op.solve("glpk", "solverLibraryName", "glpk");
         if (!op.solutionIsOptimal()) {
             throw new RuntimeException("An optimal solution was not found");
         } else {
