@@ -3,8 +3,10 @@ import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
+import sun.misc.Unsafe;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +27,11 @@ public class Main {
     static List<Integer> chosenHubs = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
+        /* Disable Warnings */
+        disableWarning();
+
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx");
+        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
 
         System.out.println("Adding locations...");
         /* Initialise variables */
@@ -363,6 +368,20 @@ public class Main {
                 offer[i][j] = (double) (int) value;
                 j++;
             }
+        }
+    }
+
+    public static void disableWarning() {
+        try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            Unsafe u = (Unsafe) theUnsafe.get(null);
+
+            Class cls = Class.forName("jdk.internal.module.IllegalAccessLogger");
+            Field logger = cls.getDeclaredField("logger");
+            u.putObjectVolatile(cls, u.staticFieldOffset(logger), null);
+        } catch (Exception e) {
+            // ignore
         }
     }
 }
