@@ -3,9 +3,12 @@ import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
+import sun.misc.Unsafe;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.*;
@@ -23,20 +26,28 @@ import javax.swing.JLabel;
 
 public class Main {
     static List<Integer> chosenHubs = new ArrayList<>();
-
+    static OptimizationProblem op;
+    static Producer[] producers;
+    static Customer[] customers;
+    static Hub[] hubs;
     public static void main(String[] args) throws Exception {
+
+        /* Disable Warnings */
+        disableWarning();
+
         /* Get Excel file */
-        //File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
-        File excelFile = new File(args[0]);
+        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
+        //File excelFile = new File(args[0]);
+
         System.out.println("Adding locations...");
         /* Initialise variables */
-        Producer[] producers = ExcelTools.readProducers(excelFile);
-        Hub[] hubs = ExcelTools.readHubs(excelFile);
-        Customer[] customers = ExcelTools.readCustomers(excelFile);
+        producers = ExcelTools.readProducers(excelFile);
+        hubs = ExcelTools.readHubs(excelFile);
+        customers = ExcelTools.readCustomers(excelFile);
 
         // Test Vars
 //        Random ran = new Random();
-        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
+          int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
 //        int qProduits = 100;
 
         // Sets
@@ -159,7 +170,7 @@ public class Main {
 
 
         /* Create the optimization problem object */
-        OptimizationProblem op = new OptimizationProblem();
+        op = new OptimizationProblem();
 
 
         System.out.println("Adding decision variables...");
@@ -221,24 +232,23 @@ public class Main {
 //        System.out.println(op.getPrimalSolution("isOpen").toString());
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 //        System.out.println(op.getPrimalSolution("yPH"));
-        for (int i=0; i<op.getPrimalSolution("yPH").getSize(0); i++){
-            boolean nonZero = false;
-            for (int j=0; j<op.getPrimalSolution("yPH").getSize(1);i++){
-                for (int k=0; j<op.getPrimalSolution("yPH").getSize(1);i++){
-
-                }
-    }
-    }
 //        System.out.println(op.getPrimalSolution("yHH"));
-//        System.out.println(op.getPrimalSolution("yPC"));
+        DoubleMatrixND yPC = op.getPrimalSolution("yPC");
+        int numScal = op.getNumScalarDecisionVariables();
+        //System.out.println(op.getPrimalSolution("yPC"));
 //        System.out.println(op.getPrimalSolution("yHC"));
 
+        displayResults(producers, hubs, customers, op);
+    }
+
+    public static void displayResults(Producer[] producers, Hub[] hubs, Customer[] customers, OptimizationProblem op) {
         String[] results = op.getPrimalSolution("isOpen").toString().split(";;");
         int idx = 0;
         for (String res : results) {
             double open = Double.parseDouble(res);
             if (open == 1.0) {
                 chosenHubs.add(idx);
+                //System.out.println(Arrays.deepToString(sumMatrix("yHC")));
                 System.out.println(hubs[idx].getName() + " hub is OPEN\n");
             }
             idx++;
@@ -261,7 +271,11 @@ public class Main {
             String latitude = "45.1934574";
             String longitude = "5.7682659";
             String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
-                    + mapString;
+                    + mapString
+                    + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
+                    + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
+                    + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
+            System.out.println(imageUrl);
             String destinationFile = "image.jpg";
 // read the map image from Google
 // then save it to a local file: image.jpg
@@ -369,4 +383,52 @@ public class Main {
             }
         }
     }
+    private static String linkTwoPoints(int[][] matrix, String matrixType, String hexaColor) {
+        String result = "";
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j]!=0) {
+                    result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                }
+                if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
+                    result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(hubs[i+1].getLongitude()) + "," + Double.toString(hubs[i+1].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                }
+                if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
+                    result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(hubs[j+1].getLongitude()) + "," + Double.toString(hubs[j+1].getLatitude());
+                }
+            }
+        }
+        return result;
+    }
+
+    private static int[][] sumMatrix(String matrixName) {
+        int[][] newMatrix = new int[op.getPrimalSolution(matrixName).getSize(0)][op.getPrimalSolution(matrixName).getSize(1)];
+        for (int i = 0; i < op.getPrimalSolution(matrixName).getSize(0); i++) {
+            for (int j = 0; j < op.getPrimalSolution(matrixName).getSize(1); j++) {
+                int sum = 0;
+                for (int k = 0; k < op.getPrimalSolution(matrixName).getSize(2); k++) {
+                    int[] subIndexes = {i, j, k};
+                    sum += op.getPrimalSolution(matrixName).get(subIndexes);
+                }
+                newMatrix[i][j] = sum;
+            }
+
+        }
+        return newMatrix;
+    }
+
+    private static void disableWarning() {
+        try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            Unsafe u = (Unsafe) theUnsafe.get(null);
+
+            Class cls = Class.forName("jdk.internal.module.IllegalAccessLogger");
+            Field logger = cls.getDeclaredField("logger");
+            u.putObjectVolatile(cls, u.staticFieldOffset(logger), null);
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
 }
