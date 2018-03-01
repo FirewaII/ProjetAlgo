@@ -265,7 +265,9 @@ public class MainTest {
                     + longitude
                     + "&zoom=9&size=1024x1024&scale=2&maptype=roadmap"
                     + mapString
-                    + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff");
+                    + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
+                    + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
+                    + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
             System.out.println(imageUrl);
             String destinationFile = "image.jpg";
 // read the map image from Google
@@ -383,10 +385,10 @@ public class MainTest {
                         result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                 }
                 if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
-                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(hubs[i+1].getLongitude()) + "," + Double.toString(hubs[i+1].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                 }
                 if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
-                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
+                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(hubs[j+1].getLongitude()) + "," + Double.toString(hubs[j+1].getLatitude());
                 }
             }
         }
