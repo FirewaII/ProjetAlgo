@@ -222,9 +222,15 @@ public class MainTest {
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 //        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yHH"));
+        DoubleMatrixND yPC = op.getPrimalSolution("yPC");
+        int numScal = op.getNumScalarDecisionVariables();
         System.out.println(op.getPrimalSolution("yPC"));
 //        System.out.println(op.getPrimalSolution("yHC"));
 
+        displayResults(producers, hubs, customers, op);
+    }
+
+    public static void displayResults(Producer[] producers, Hub[] hubs, Customer[] customers, OptimizationProblem op){
         String[] results = op.getPrimalSolution("isOpen").toString().split(";;");
         int idx = 0;
         for (String res : results) {
