@@ -3,10 +3,8 @@ import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
-import sun.misc.Unsafe;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +25,9 @@ public class Main {
     static List<Integer> chosenHubs = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-        /* Disable Warnings */
-        disableWarning();
-
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx");
-
+        //File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
+        File excelFile = new File(args[0]);
         System.out.println("Adding locations...");
         /* Initialise variables */
         Producer[] producers = ExcelTools.readProducers(excelFile);
@@ -214,7 +209,7 @@ public class Main {
         /* Call the solver to solve the problem */
         System.out.println("Solving...");
 
-        op.solve("glpk", "solverLibraryName", "res/glpk/glpk");
+        op.solve("glpk", "solverLibraryName", "glpk");
         if (!op.solutionIsOptimal()) {
             throw new RuntimeException("An optimal solution was not found");
         } else {
@@ -245,23 +240,19 @@ public class Main {
         //Ajout des producteurs
         String mapString = "";
         for (int i = 1; i < producers.length; i++) {
-            mapString += "&markers=color:blue%7Clabel:" + i + "%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
+            mapString += "&markers=icon:http://pierret.pro/Farm.png%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
         }
         for (int i = 1; i < customers.length; i++) {
-            mapString += "&markers=color:yellow%7Clabel:" + i + "%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
+            mapString += "&markers=icon:http://pierret.pro/client.png%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
         }
         for (int i = 0; i < chosenHubs.size(); i++) {
-            mapString += "&markers=color:red%7Clabel:" + i + "%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+            mapString += "&markers=icon:http://pierret.pro/orange-hub-32.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
         }
 
         try {
             String latitude = "45.1934574";
             String longitude = "5.7682659";
-            String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?center="
-                    + latitude
-                    + ","
-                    + longitude
-                    + "&zoom=9&size=1024x1024&scale=2&maptype=roadmap"
+            String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
                     + mapString;
             String destinationFile = "image.jpg";
 // read the map image from Google
@@ -368,20 +359,6 @@ public class Main {
                 offer[i][j] = (double) (int) value;
                 j++;
             }
-        }
-    }
-
-    public static void disableWarning() {
-        try {
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-            theUnsafe.setAccessible(true);
-            Unsafe u = (Unsafe) theUnsafe.get(null);
-
-            Class cls = Class.forName("jdk.internal.module.IllegalAccessLogger");
-            Field logger = cls.getDeclaredField("logger");
-            u.putObjectVolatile(cls, u.staticFieldOffset(logger), null);
-        } catch (Exception e) {
-            // ignore
         }
     }
 }
