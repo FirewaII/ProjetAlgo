@@ -3,6 +3,7 @@ import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.Customer;
 import models.Hub;
+import models.Location;
 import models.Producer;
 import sun.misc.Unsafe;
 
@@ -10,16 +11,26 @@ import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.lang.Integer.max;
 
 public class MainTest {
     static List<Integer> chosenHubs = new ArrayList<>();
+    static OptimizationProblem op;
+    static Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
+            new Producer(1, "Ferme1", 45.14429, 5.20811),
+            new Producer(2, "Ferme2", 45.71531, 5.67431),
+            new Producer(3, "Ferme3", 45.52911, 5.73944)};
+    static Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
+            new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
+            new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
+            new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
+            new Customer(4, "Client 4", "Supermarché", 45.5967377, 5.0944433),
+            new Customer(5, "Client 5", "Supermarché", 45.6732628, 5.4846254)};
+    static Hub[] hubs = {new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
+            new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
 
     public static void main(String[] args) throws Exception {
         /* Disable Warnings */
@@ -39,10 +50,7 @@ public class MainTest {
         int qProduits = 9000;
 
         // Sets
-        Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
-                new Producer(1, "Ferme1", 45.14429, 5.20811),
-                new Producer(2, "Ferme2", 45.71531, 5.67431),
-                new Producer(3, "Ferme3", 45.52911, 5.73944)};
+
 
         for (Producer producer : producers) {
             if (producer.getName().equals("Fiction")) {
@@ -53,20 +61,12 @@ public class MainTest {
             producer.setSupply("Fruits", ran.nextInt(qProduits));
         }
 
-        Hub[] hubs = {new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
-                new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
 
         double[][] openCost = new double[hubs.length][1];
         for (int i = 0; i < hubs.length; i++) {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
-                new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
-                new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
-                new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
-                new Customer(4, "Client 4", "Supermarché", 45.5967377, 5.0944433),
-                new Customer(5, "Client 5", "Supermarché", 45.6732628, 5.4846254)};
 
         for (Customer customer : customers) {
             if (customer.getName().equals("Fiction")) {
@@ -159,7 +159,7 @@ public class MainTest {
 
 
         /* Create the optimization problem object */
-        OptimizationProblem op = new OptimizationProblem();
+        op = new OptimizationProblem();
 
 
         System.out.println("Adding decision variables...");
@@ -230,13 +230,14 @@ public class MainTest {
         displayResults(producers, hubs, customers, op);
     }
 
-    public static void displayResults(Producer[] producers, Hub[] hubs, Customer[] customers, OptimizationProblem op){
+    public static void displayResults(Producer[] producers, Hub[] hubs, Customer[] customers, OptimizationProblem op) {
         String[] results = op.getPrimalSolution("isOpen").toString().split(";;");
         int idx = 0;
         for (String res : results) {
             double open = Double.parseDouble(res);
             if (open == 1.0) {
                 chosenHubs.add(idx);
+                System.out.println(Arrays.deepToString(sumMatrix("yHC")));
                 System.out.println(hubs[idx].getName() + " hub is OPEN\n");
             }
             idx++;
@@ -263,7 +264,9 @@ public class MainTest {
                     + ","
                     + longitude
                     + "&zoom=9&size=1024x1024&scale=2&maptype=roadmap"
-                    + mapString;
+                    + mapString
+                    + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff");
+            System.out.println(imageUrl);
             String destinationFile = "image.jpg";
 // read the map image from Google
 // then save it to a local file: image.jpg
@@ -285,7 +288,7 @@ public class MainTest {
 // create a GUI component that loads the image: image.jpg
 //
         ImageIcon imageIcon = new ImageIcon((new ImageIcon("image.jpg"))
-                .getImage().getScaledInstance(630, 600,
+                .getImage().getScaledInstance(600, 600,
                         java.awt.Image.SCALE_SMOOTH));
         test.add(new JLabel(imageIcon));
 // show the GUI window
@@ -372,8 +375,38 @@ public class MainTest {
         }
     }
 
-    private static void sumMatrixDimension(double[][][] matrix, int dimension){
+    private static String linkTwoPoints(int[][] matrix, String matrixType, String hexaColor) {
+        String result = "";
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j]!=0) {
+                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                }
+                if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
+                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                }
+                if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
+                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
+                }
+            }
+        }
+        return result;
+    }
 
+    private static int[][] sumMatrix(String matrixName) {
+        int[][] newMatrix = new int[op.getPrimalSolution(matrixName).getSize(0)][op.getPrimalSolution(matrixName).getSize(1)];
+        for (int i = 0; i < op.getPrimalSolution(matrixName).getSize(0); i++) {
+            for (int j = 0; j < op.getPrimalSolution(matrixName).getSize(1); j++) {
+                int sum = 0;
+                for (int k = 0; k < op.getPrimalSolution(matrixName).getSize(2); k++) {
+                    int[] subIndexes = {i, j, k};
+                    sum += op.getPrimalSolution(matrixName).get(subIndexes);
+                }
+                newMatrix[i][j] = sum;
+            }
+
+        }
+        return newMatrix;
     }
 
     private static void disableWarning() {

@@ -221,6 +221,14 @@ public class Main {
 //        System.out.println(op.getPrimalSolution("isOpen").toString());
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 //        System.out.println(op.getPrimalSolution("yPH"));
+        for (int i=0; i<op.getPrimalSolution("yPH").getSize(0); i++){
+            boolean nonZero = false;
+            for (int j=0; j<op.getPrimalSolution("yPH").getSize(1);i++){
+                for (int k=0; j<op.getPrimalSolution("yPH").getSize(1);i++){
+
+                }
+    }
+    }
 //        System.out.println(op.getPrimalSolution("yHH"));
 //        System.out.println(op.getPrimalSolution("yPC"));
 //        System.out.println(op.getPrimalSolution("yHC"));
