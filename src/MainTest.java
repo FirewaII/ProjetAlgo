@@ -247,23 +247,19 @@ public class MainTest {
         //Ajout des producteurs
         String mapString = "";
         for (int i = 1; i < producers.length; i++) {
-            mapString += "&markers=color:blue%7Clabel:" + i + "%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
+            mapString += "&markers=icon:http://pierret.pro/F.png|" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
         }
         for (int i = 1; i < customers.length; i++) {
-            mapString += "&markers=color:yellow%7Clabel:" + i + "%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
+            mapString += "&markers=icon:http://pierret.pro/C.png|" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
         }
         for (int i = 0; i < chosenHubs.size(); i++) {
-            mapString += "&markers=color:red%7Clabel:" + i + "%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+            mapString += "&markers=icon:http://pierret.pro/H.png|" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
         }
 
         try {
             String latitude = "45.1934574";
             String longitude = "5.7682659";
-            String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?center="
-                    + latitude
-                    + ","
-                    + longitude
-                    + "&zoom=9&size=1024x1024&scale=2&maptype=roadmap"
+            String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
                     + mapString
                     + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
                     + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
@@ -382,13 +378,13 @@ public class MainTest {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j]!=0) {
-                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                        result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                 }
                 if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
-                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(hubs[i+1].getLongitude()) + "," + Double.toString(hubs[i+1].getLatitude()) + "%7C" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                        result += "&path=" + Double.toString(hubs[i+1].getLongitude()) + "," + Double.toString(hubs[i+1].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                 }
                 if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
-                        result += "&path=color:0x" + hexaColor + "%7Cweight:5%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "%7C" + Double.toString(hubs[j+1].getLongitude()) + "," + Double.toString(hubs[j+1].getLatitude());
+                        result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(hubs[j+1].getLongitude()) + "," + Double.toString(hubs[j+1].getLatitude());
                 }
             }
         }
