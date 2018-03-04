@@ -10,18 +10,30 @@ import java.net.URL;
 import java.util.Scanner;
 
 public class Location {
+    protected static String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
+    protected static String apiKeyBackup = "AIzaSyALdczrg5jCqau0hhcNVPilRiwmdlQdUiY";
+    protected static String apiKeySecondBackup = "AIzaSyD4BwCaD4ZIhBgD8bI-CAjS4W_dfzxAxCM";
     private int noPlace;
     private String name;
     private double longitude;
     private double latitude;
-    protected static String apiKey = "AIzaSyBmJFq8fk7l0fA9cIUldb4Io7Prga1FmSc";
-    protected static String apiKeyBackup =  "AIzaSyALdczrg5jCqau0hhcNVPilRiwmdlQdUiY";
-    protected static String apiKeySecondBackup = "AIzaSyD4BwCaD4ZIhBgD8bI-CAjS4W_dfzxAxCM";
-    public Location(int noPlace, String name, double longitude, double latitude) {
+
+    public Location(int noPlace, String name, double latitude, double longitude) {
         this.noPlace = noPlace;
         this.name = name;
-        this.longitude = longitude;
         this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Location l1 = new Location(1, "client1", 45.17823, 5.74396);
+        Location l2 = new Location(2, "client2", 45.21854, 5.66133);
+
+        System.out.println(l2.getDistanceTo(l1, true));
+        System.out.println(l1.getDistanceFrom(l2, true));
+        System.out.println(l2.getDistanceTo(l1, true));
+        System.out.println(l1.getDistanceFrom(l2, true));
+
     }
 
     public int getNoPlace() {
@@ -29,7 +41,7 @@ public class Location {
     }
 
     public void setNoPlace(int noPlace) {
-        assert noPlace>0;
+        assert noPlace > 0;
         this.noPlace = noPlace;
     }
 
@@ -61,8 +73,9 @@ public class Location {
      * Returns the distance between the current location and another one
      * using the Google Maps API.
      * The returned value is an Integer and is expressed in meters.
+     * <p>
+     * //     * @param loc Location object metersto which the distance will be calculated
      *
-//     * @param loc Location object metersto which the distance will be calculated
      * @return distance in
      */
 
@@ -100,17 +113,15 @@ public class Location {
         // Build JSON
         JSONObject jsonObj = new JSONObject(read);
         if (!jsonObj.get("status").equals("OK")) {
-            if (jsonObj.get("status").equals("OVER_QUERY_LIMIT")){
-                if (apiKey.equals(apiKeySecondBackup)){
+            if (jsonObj.get("status").equals("OVER_QUERY_LIMIT")) {
+                if (apiKey.equals(apiKeySecondBackup)) {
                     throw new Exception("API Call limitation quota has been reached");
-                }
-                else if (apiKey.equals(apiKeyBackup)){
+                } else if (apiKey.equals(apiKeyBackup)) {
                     jsonObj = gMapsAPICall(origin, destination, apiKeySecondBackup);
-                }
-                else{
+                } else {
                     jsonObj = gMapsAPICall(origin, destination, apiKeyBackup);
                 }
-            }else {
+            } else {
                 throw new Exception("API call failed");
             }
 
@@ -118,16 +129,17 @@ public class Location {
 
         return jsonObj;
     }
-    public int getDistanceTo(Location loc) throws Exception {
+
+    public int getDistanceTo(Location loc, boolean API) throws Exception {
+        if (API) {
         assert loc != null;
         // Prep URL
-        String origin = String.format("%s,%s", this.getLongitude(), this.getLatitude());
-        String destination = String.format("%s,%s", loc.getLongitude(), loc.getLatitude());
-
-        JSONObject jsonObj = gMapsAPICall(origin, destination, apiKey);
-        // Get distance results
-        int distanceResult = Integer.MAX_VALUE;
+        String origin = String.format("%s,%s", this.getLatitude(), this.getLongitude());
+        String destination = String.format("%s,%s", loc.getLatitude(), loc.getLongitude());
         try {
+            JSONObject jsonObj = gMapsAPICall(origin, destination, apiKey);
+            // Get distance results
+            int distanceResult = Integer.MAX_VALUE;
             JSONArray routes = (JSONArray) jsonObj.get("routes");
             for (int i = 0; i < routes.length(); i++) {
                 JSONObject subElem = (JSONObject) routes.get(i);
@@ -138,32 +150,41 @@ public class Location {
                     distanceResult = distance.getInt("value");
                 }
             }
-            return distanceResult;
+            System.out.println("NAMES : " + this.name + "  " + loc.name);
+            System.out.println("NAMES : " + loc.getLatitude() + "  " + loc.getLongitude());
+            System.out.println("API : " + distanceResult);
+            //return distanceResult;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return -1;
 
+        }
+        else {
+        // Orthodromic distance between two points
+        // Set the coordinates in radians
+        double lat1 = Math.toRadians(this.getLatitude());
+        double lon1 = Math.toRadians(this.getLongitude());
+        double lat2 = Math.toRadians(loc.getLatitude());
+        double lon2 = Math.toRadians(loc.getLongitude());
+        //Haverside formula
+        double a = Math.pow(Math.sin((lat2 - lat1) / 2), 2)
+                + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lon2 - lon1) / 2), 2);
+        double angle = Math.toDegrees(2 * Math.asin(Math.min(1, Math.sqrt(a))));
+        // Calculate the distance in meters (nautical mile*1852)
+        double distance = 1852 * 60 * angle;
+        return (int) distance;
+    }
     }
 
     /**
      * Reverse function of getDistanceTo.
      * Returns the distance from another location to the cuurent one.
+     *
      * @param loc Location object to which the distance will be calculated
      * @return distance in meters
      */
-    public long getDistanceFrom(Location loc) throws Exception {
-        return loc.getDistanceTo(this);
-    }
-
-    public static void main(String[] args) throws Exception {
-        Location l1 = new Location(1, "client1", 45.17823, 5.74396);
-        Location l2 = new Location(2, "client2", 45.21854, 5.66133);
-
-        System.out.println(l2.getDistanceTo(l1));
-        System.out.println(l1.getDistanceFrom(l2));
-        System.out.println(l2.getDistanceTo(l1));
-        System.out.println(l1.getDistanceFrom(l2));
-
+    public long getDistanceFrom(Location loc, boolean useAPI) throws Exception {
+        return loc.getDistanceTo(this, useAPI);
     }
 }

@@ -5,6 +5,7 @@ import com.jom.OptimizationProblem;
 import models.*;
 import sun.misc.Unsafe;
 
+import java.awt.*;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -30,13 +31,15 @@ public class Main {
     static Producer[] producers;
     static Customer[] customers;
     static Hub[] hubs;
+    static boolean useAPI;
+
     public static void main(String[] args) throws Exception {
 
         /* Disable Warnings */
         disableWarning();
 
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
+        File excelFile = new File("res/Projet_DistAgri_Inst_Grande.xlsx"); // Launching with IDE
         //File excelFile = new File(args[0]);
 
         System.out.println("Adding locations...");
@@ -47,7 +50,7 @@ public class Main {
 
         // Test Vars
 //        Random ran = new Random();
-          int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
+        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
 //        int qProduits = 100;
 
         // Sets
@@ -253,56 +256,68 @@ public class Main {
             }
             idx++;
         }
-        JFrame test = new JFrame("Google Maps");
+        if (useAPI) {
 
-        //Ajout des producteurs
-        String mapString = "";
-        for (int i = 1; i < producers.length; i++) {
-            mapString += "&markers=icon:http://pierret.pro/F.png%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
-        }
-        for (int i = 1; i < customers.length; i++) {
-            mapString += "&markers=icon:http://pierret.pro/C.png%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
-        }
-        for (int i = 0; i < chosenHubs.size(); i++) {
-            mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
-        }
+            // get the screen size as a java dimension
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-        try {
-            String latitude = "45.1934574";
-            String longitude = "5.7682659";
-            String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
-                    + mapString
-                    + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
-                    + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
-                    + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
-            System.out.println(imageUrl);
-            String destinationFile = "image.jpg";
-// read the map image from Google
-// then save it to a local file: image.jpg
-//
-            URL url = new URL(imageUrl);
-            InputStream is = url.openStream();
-            OutputStream os = new FileOutputStream(destinationFile);
-            byte[] b = new byte[2048];
-            int length;
-            while ((length = is.read(b)) != -1) {
-                os.write(b, 0, length);
+            // set the jframe to take half of the screen
+            int height = screenSize.height / 2;
+            int width = screenSize.width / 2;
+
+
+            JFrame test = new JFrame("Google Maps");
+            // set the jframe height and width
+            test.setPreferredSize(new Dimension(width, height));
+            //Ajout des producteurs
+            String mapString = "";
+            for (int i = 1; i < producers.length; i++) {
+                mapString += "&markers=icon:http://pierret.pro/F.png%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
             }
-            is.close();
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+            for (int i = 1; i < customers.length; i++) {
+                mapString += "&markers=icon:http://pierret.pro/C.png%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
+            }
+            for (int i = 0; i < chosenHubs.size(); i++) {
+                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+            }
+
+            try {
+                String latitude = "45.1934574";
+                String longitude = "5.7682659";
+                String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
+                        + mapString
+                        + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
+                        + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
+                        + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
+                System.out.println(imageUrl);
+                String destinationFile = "image.jpg";
+                // read the map image from Google
+                // then save it to a local file: image.jpg
+                //
+                URL url = new URL(imageUrl);
+                InputStream is = url.openStream();
+                OutputStream os = new FileOutputStream(destinationFile);
+                byte[] b = new byte[2048];
+                int length;
+                while ((length = is.read(b)) != -1) {
+                    os.write(b, 0, length);
+                }
+                is.close();
+                os.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
 // create a GUI component that loads the image: image.jpg
 //
-        ImageIcon imageIcon = new ImageIcon((new ImageIcon("image.jpg"))
-                .getImage().getScaledInstance(630, 600,
-                        java.awt.Image.SCALE_SMOOTH));
-        test.add(new JLabel(imageIcon));
+            ImageIcon imageIcon = new ImageIcon((new ImageIcon("image.jpg"))
+                    .getImage().getScaledInstance(600, 600,
+                            java.awt.Image.SCALE_SMOOTH));
+            test.add(new JLabel(imageIcon));
 // show the GUI window
-        test.setVisible(true);
-        test.pack();
+            test.setVisible(true);
+            test.pack();
+        }
     }
 
     private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH, File excelFile) throws Exception {
@@ -314,6 +329,14 @@ public class Main {
         int coefP; // Coef prod fictif
         int coefC; // Coef client fictif
         double cost;
+
+        //Définir si on utilise l'API
+        int nbPaths = customers.length * hubs.length + producers.length * hubs.length + producers.length * customers.length + hubs.length * hubs.length;
+        if (nbPaths > 7500) {
+            useAPI = false;
+        }
+        //else useAPI = true;
+        else useAPI = false;
         for (int i = 0; i < producers.length; i++) {
             if (producers[i].getName().equals("Fiction")) {
                 coefP = 0;
@@ -321,7 +344,7 @@ public class Main {
                 coefP = 1;
             }
             for (int j = 0; j < hubs.length; j++) {
-                cost = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoH * coefP;
+                cost = (producers[i].getDistanceTo(hubs[j], useAPI) / 1000) * costPtoH * coefP;
                 for (int l = 0; l < nbProduits; l++) {
                     cPH[i][j][l] = cost;
                 }
@@ -332,7 +355,7 @@ public class Main {
                 } else {
                     coefC = 1;
                 }
-                cost = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoC * coefC * coefP;
+                cost = (producers[i].getDistanceTo(customers[k], useAPI) / 1000) * costPtoC * coefC * coefP;
                 for (int l = 0; l < nbProduits; l++) {
                     cPC[i][k][l] = cost;
                 }
@@ -342,7 +365,7 @@ public class Main {
 
         for (int j = 0; j < hubs.length; j++) {
             for (int h = 0; h < hubs.length; h++) {
-                cost = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoH;
+                cost = (hubs[j].getDistanceTo(hubs[h], useAPI) / 1000) * costHtoH;
                 for (int l = 0; l < nbProduits; l++) {
                     cHH[j][h][l] = cost;
                 }
@@ -353,7 +376,7 @@ public class Main {
                 } else {
                     coefC = 1;
                 }
-                cost = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoC * coefC;
+                cost = (hubs[j].getDistanceTo(customers[k], useAPI) / 1000) * costHtoC * coefC;
 
                 for (int l = 0; l < nbProduits; l++) {
                     cHC[j][k][l] = cost;
@@ -383,17 +406,18 @@ public class Main {
             }
         }
     }
+
     private static String linkTwoPoints(int[][] matrix, String matrixType, String hexaColor) {
         String result = "";
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
-                if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j]!=0) {
+                if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0) {
                     result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                 }
-                if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
+                if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j] != 0) {
                     result += "&path=" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                 }
-                if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j]!=0) {
+                if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j] != 0) {
                     result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
                 }
             }

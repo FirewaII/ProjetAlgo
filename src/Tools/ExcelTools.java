@@ -61,8 +61,8 @@ public class ExcelTools {
                     /* Get values of current row */
                     int noPlace = Integer.parseInt(row.getCell(colNum).getRawValue());
                     String name = row.getCell(colName).getStringCellValue();
-                    double longitude = Double.parseDouble(row.getCell(colGPS1).getRawValue());
-                    double latitude = Double.parseDouble(row.getCell(colGPS2).getRawValue());
+                    double latitude = Double.parseDouble(row.getCell(colGPS1).getRawValue());
+                    double longitude = Double.parseDouble(row.getCell(colGPS2).getRawValue());
 
                     locations[r-1] = new Location(noPlace, name, longitude, latitude);
                 }

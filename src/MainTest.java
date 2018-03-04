@@ -310,7 +310,7 @@ public class MainTest {
                 coefP = 1;
             }
             for (int j = 0; j < hubs.length; j++) {
-                cost = (producers[i].getDistanceTo(hubs[j]) / 1000) * costPtoH * coefP;
+                cost = (producers[i].getDistanceTo(hubs[j],false) / 1000) * costPtoH * coefP;
                 for (int l = 0; l < nbProduits; l++) {
                     cPH[i][j][l] = cost;
                 }
@@ -321,7 +321,7 @@ public class MainTest {
                 } else {
                     coefC = 1;
                 }
-                cost = (producers[i].getDistanceTo(customers[k]) / 1000) * costPtoC * coefC * coefP;
+                cost = (producers[i].getDistanceTo(customers[k],false) / 1000) * costPtoC * coefC * coefP;
                 for (int l = 0; l < nbProduits; l++) {
                     cPC[i][k][l] = cost;
                 }
@@ -331,7 +331,7 @@ public class MainTest {
 
         for (int j = 0; j < hubs.length; j++) {
             for (int h = 0; h < hubs.length; h++) {
-                cost = (hubs[j].getDistanceTo(hubs[h]) / 1000) * costHtoH;
+                cost = (hubs[j].getDistanceTo(hubs[h],false) / 1000) * costHtoH;
                 for (int l = 0; l < nbProduits; l++) {
                     cHH[j][h][l] = cost;
                 }
@@ -342,7 +342,7 @@ public class MainTest {
                 } else {
                     coefC = 1;
                 }
-                cost = (hubs[j].getDistanceTo(customers[k]) / 1000) * costHtoC * coefC;
+                cost = (hubs[j].getDistanceTo(customers[k],false) / 1000) * costHtoC * coefC;
 
                 for (int l = 0; l < nbProduits; l++) {
                     cHC[j][k][l] = cost;
