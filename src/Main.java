@@ -3,6 +3,7 @@ import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
+//import org.junit.frame;
 import sun.misc.Unsafe;
 
 import java.awt.*;
@@ -21,9 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.*;
 
 public class Main {
     static List<Integer> chosenHubs = new ArrayList<>();
@@ -39,7 +38,7 @@ public class Main {
         disableWarning();
 
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Grande.xlsx"); // Launching with IDE
+        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
         //File excelFile = new File(args[0]);
 
         System.out.println("Adding locations...");
@@ -48,7 +47,7 @@ public class Main {
         hubs = ExcelTools.readHubs(excelFile);
         customers = ExcelTools.readCustomers(excelFile);
 
-        // Test Vars
+        // frame Vars
 //        Random ran = new Random();
         int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
 //        int qProduits = 100;
@@ -230,16 +229,23 @@ public class Main {
             System.out.println("Optimal solution found!");
         }
 
+//        offer = demand = null;
+//        prodDemand = prodOffer =  null;
+//        op = null;
+//        cPC = cPH = cHH = cHC = null;
+//        customers = null;
+//        producers = null;
+//        hubs = null;
 
         /* Print the solution */
-//        System.out.println(op.getPrimalSolution("isOpen").toString());
-        System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
+        System.out.println("\nOptimal cost: " + op.getOptimalCost()+ "\n");
+
+
 //        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yHH"));
-        DoubleMatrixND yPC = op.getPrimalSolution("yPC");
-        int numScal = op.getNumScalarDecisionVariables();
-        //System.out.println(op.getPrimalSolution("yPC"));
+//        System.out.println(op.getPrimalSolution("yPC"));
 //        System.out.println(op.getPrimalSolution("yHC"));
+
 
         displayResults(producers, hubs, customers, op);
     }
@@ -256,7 +262,7 @@ public class Main {
             }
             idx++;
         }
-        if (useAPI) {
+        if (true) {
 
             // get the screen size as a java dimension
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -266,19 +272,22 @@ public class Main {
             int width = screenSize.width / 2;
 
 
-            JFrame test = new JFrame("Google Maps");
+            JFrame frame = new JFrame("Google Maps");
             // set the jframe height and width
-            test.setPreferredSize(new Dimension(width, height));
+            frame.setPreferredSize(new Dimension(600,600));
             //Ajout des producteurs
             String mapString = "";
             for (int i = 1; i < producers.length; i++) {
-                mapString += "&markers=icon:http://pierret.pro/F.png%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
+//                mapString += "&markers=icon:/F.png%7C" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude());
+                mapString += "&markers=icon:/F.png%7C" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude());
             }
             for (int i = 1; i < customers.length; i++) {
-                mapString += "&markers=icon:http://pierret.pro/C.png%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
+//                mapString += "&markers=icon:http://pierret.pro/C.png%7C" + Double.toString(customers[i].getLongitude()) + "," + Double.toString(customers[i].getLatitude());
+                mapString += "&markers=icon:http://pierret.pro/C.png%7C" + Double.toString(customers[i].getLatitude()) + "," + Double.toString(customers[i].getLongitude());
             }
             for (int i = 0; i < chosenHubs.size(); i++) {
-                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+//                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLatitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLongitude());
             }
 
             try {
@@ -289,7 +298,7 @@ public class Main {
                         + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
                         + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
                         + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
-                System.out.println(imageUrl);
+//                System.out.println(imageUrl);
                 String destinationFile = "image.jpg";
                 // read the map image from Google
                 // then save it to a local file: image.jpg
@@ -308,15 +317,16 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-// create a GUI component that loads the image: image.jpg
-//
+            // create a GUI component that loads the image: image.jpg
+            //
             ImageIcon imageIcon = new ImageIcon((new ImageIcon("image.jpg"))
                     .getImage().getScaledInstance(600, 600,
                             java.awt.Image.SCALE_SMOOTH));
-            test.add(new JLabel(imageIcon));
-// show the GUI window
-            test.setVisible(true);
-            test.pack();
+            frame.add(new JLabel(imageIcon));
+            // show the GUI window
+            frame.setVisible(true);
+            frame.pack();
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         }
     }
 
@@ -412,13 +422,16 @@ public class Main {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0) {
-                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+//                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                    result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
                 }
                 if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j] != 0) {
-                    result += "&path=" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+//                    result += "&path=" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
+                    result += "&path=" + Double.toString(hubs[i].getLatitude()) + "," + Double.toString(hubs[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
                 }
                 if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j] != 0) {
-                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
+//                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
+                    result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(hubs[j].getLatitude()) + "," + Double.toString(hubs[j].getLongitude());
                 }
             }
         }
