@@ -24,7 +24,7 @@ import java.net.URL;
 import javax.swing.*;
 
 public class Main {
-    private static List<Integer> chosenHubs = new ArrayList<>();
+    private static ArrayList<Hub> chosenHubs = new ArrayList<>();
     private static OptimizationProblem op;
     private static Producer[] producers;
     private static Customer[] customers;
@@ -53,8 +53,8 @@ public class Main {
         Random ran = new Random();
 //        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
         int nbProduits = 3;
-        int qProduits = 100;
-        int nbPeriodes = 3;
+        int qProduits = 1000;
+        int nbPeriodes = 2;
 
 //         Sets
         producers = new Producer[]{new Producer(0, "Fiction", 45.14429, 5.20811),
@@ -187,7 +187,7 @@ public class Main {
 
         System.out.println("Adding decision variables...");
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("isOpen", true, new int[]{hubs.length, 1}, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("isOpen", true, new int[]{hubs.length,nbPeriodes}, 0, 1);  // name, isInteger, size , minValue, maxValue
         // Nombre de produits à transferer
         op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbPeriodes, nbProduits}, 0, bigM);
         op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbPeriodes, nbProduits}, 0, bigM);
@@ -221,15 +221,15 @@ public class Main {
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(sum(sum(yPH,4),3),1) <= M * sum(isOpen,1)");
+        op.addConstraint("sum(sum(yPH,4),1) <= M * isOpen");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un client et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(sum(sum(yHC,4),3),2) <= M * sum(isOpen,1)");
+        op.addConstraint("sum(sum(yHC,4),2) <= M * isOpen");
 
 
         System.out.println("Setting objective functions...");
         /* Sets the objective function */
-        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
+        op.setObjectiveFunction("minimize", "sum(sum(isOpen,3),2) .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
 
 
         /* Call the solver to solve the problem */
@@ -242,21 +242,15 @@ public class Main {
             System.out.println("Optimal solution found!");
         }
 
-//        offer = demand = null;
-//        prodDemand = prodOffer =  null;
-//        op = null;
-//        cPC = cPH = cHH = cHC = null;
-//        customers = null;
-//        producers = null;
-//        hubs = null;
-
         /* Print the solution */
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 
 
-//        System.out.println(op.getPrimalSolution("yPH"));
+        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yPC"));
-//        System.out.println(op.getPrimalSolution("yHC"));
+        System.out.println(op.getPrimalSolution("yHC"));
+
+        System.out.println(op.getPrimalSolution("isOpen"));
 
 
         displayResults(producers, hubs, customers, op);
@@ -268,7 +262,7 @@ public class Main {
         for (String res : results) {
             double open = Double.parseDouble(res);
             if (open == 1.0) {
-                chosenHubs.add(idx);
+                chosenHubs.add(hubs[idx]);
                 //System.out.println(Arrays.deepToString(sumMatrix("yHC")));
                 System.out.println(hubs[idx].getName() + " hub is OPEN\n");
             }
@@ -299,7 +293,7 @@ public class Main {
             }
             for (int i = 0; i < chosenHubs.size(); i++) {
 //                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
-                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLatitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLongitude());
+                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(chosenHubs.get(i).getLatitude()) + "," + Double.toString(chosenHubs.get(i).getLongitude());
             }
 
             try {
@@ -412,7 +406,7 @@ public class Main {
                 cost = (hubs[i].getDistanceTo(customers[j], useAPI) / 1000) * costHtoC * coefC;
                 for (int k = 0; k < nbPeriodes; k++) {
                     for (int l = 0; l < nbProduits; l++) {
-                        cHC[i][k][k][l] = cost;
+                        cHC[i][j][k][l] = cost;
                     }
                 }
             }
