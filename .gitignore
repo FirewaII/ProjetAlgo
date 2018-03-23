@@ -1,6 +1,4 @@
 # Compiled class file
-*.class
-
 # Log file
 *.log
 
@@ -16,5 +14,6 @@ hs_err_pid*
 .idea/workspace.xml
 .idea/misc.xml
 /out/
-image.jpg
 .idea/inspectionProfiles/
+/image.jpg
+/.idea/compiler.xml

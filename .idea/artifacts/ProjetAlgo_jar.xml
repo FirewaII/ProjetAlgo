@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="jar" build-on-make="true" name="ProjetAlgo:jar">
+  <artifact type="jar" name="ProjetAlgo:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/ProjetAlgo_jar</output-path>
     <root id="archive" name="ProjetAlgo.jar">
       <element id="module-output" name="ProjetAlgo" />
