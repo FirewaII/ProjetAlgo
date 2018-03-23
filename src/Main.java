@@ -30,6 +30,7 @@ public class Main {
     private static Customer[] customers;
     private static Hub[] hubs;
     private static boolean useAPI;
+    private static int bigM;
 
     public static void main(String[] args) throws Exception {
 
@@ -102,41 +103,35 @@ public class Main {
         // Offer / Demand
         double[][][] offer = new double[producers.length][nbPeriodes][nbProduits];
         double[][][] demand = new double[customers.length][nbPeriodes][nbProduits];
-        calculateOffer(producers, offer);
-        calculateDemand(customers, demand);
+        calculateOffer(offer, 1);
+        calculateDemand(demand, 1);
 
-        int[] prodOffer = new int[nbPeriodes];
+        int[][] prodOffer = new int[nbPeriodes][nbProduits];
         for (double[][] subOffer : offer) {
             for (int i = 0; i < nbPeriodes; i++) {
                 for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
-                    prodOffer[i] += subOffer[i][currentProd];
+                    prodOffer[i][currentProd] += subOffer[i][currentProd];
                 }
             }
 
         }
 
-        int[] prodDemand = new int[nbPeriodes];
+        int[][] prodDemand = new int[nbPeriodes][nbProduits];
         for (double[][] subDemand : demand) {
             for (int i = 0; i < nbPeriodes; i++) {
                 for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
-                    prodDemand[i] += subDemand[i][currentProd];
+                    prodDemand[i][currentProd] += subDemand[i][currentProd];
                 }
             }
         }
 
 
-        // Big M
-        int totalOffer = IntStream.of(prodOffer).sum();
-        int totalDemand = IntStream.of(prodDemand).sum();
-        int M = max(totalDemand, totalOffer);
-//
-//
         System.out.println("Adding fictive O/D...");
         // Fictive offer/demand
         for (int i = 0; i < nbPeriodes; i++) {
             for (int j = 0; j < nbProduits; j++) {
-                int offset = prodOffer[j] - prodDemand[j];
-                if (prodDemand[j] > prodOffer[j]) {
+                int offset = prodOffer[i][j] - prodDemand[i][j];
+                if (prodDemand[i][j] > prodOffer[i][j]) {
                     producers[0].setSupply(i, "Produit fictif " + j, -offset);
                     customers[0].setDemand(i, "Produit fictif " + j, 0);
                 } else {
@@ -158,8 +153,8 @@ public class Main {
         double[][][][] cHH = new double[hubs.length][hubs.length][nbPeriodes][nbProduits];
 
         // Inclusion de la O/D fictive
-        calculateOffer(producers, offer);
-        calculateDemand(customers, demand);
+        calculateOffer(offer, 0);
+        calculateDemand(demand, 0);
 
         System.out.println("Calculating shipping costs, this might take a while...");
         // Calcul des couts de transport en fonction de la distance (km)
@@ -194,17 +189,17 @@ public class Main {
         /* Add the decision variables to the problem */
         op.addDecisionVariable("isOpen", true, new int[]{hubs.length, 1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         // Nombre de produits à transferer
-        op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbPeriodes, nbProduits}, 0, M);
-        op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbPeriodes, nbProduits}, 0, M);
-        op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length, nbPeriodes, nbProduits}, 0, M);
-        op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length, nbPeriodes, nbProduits}, 0, M);
+        op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbPeriodes, nbProduits}, 0, bigM);
+        op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbPeriodes, nbProduits}, 0, bigM);
+        op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length, nbPeriodes, nbProduits}, 0, bigM);
+        op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length, nbPeriodes, nbProduits}, 0, bigM);
 
         System.out.println("Preparing input parameters...");
         /* Set value for the input parameters */
         op.setInputParameter("openCost", new DoubleMatrixND(openCost));
         op.setInputParameter("offer", new DoubleMatrixND(offer));
         op.setInputParameter("demand", new DoubleMatrixND(demand));
-        op.setInputParameter("M", M);
+        op.setInputParameter("M", bigM);
 
         // Cout de transfert
         op.setInputParameter("cPH", new DoubleMatrixND(cPH));
@@ -259,9 +254,9 @@ public class Main {
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 
 
-        System.out.println(op.getPrimalSolution("yPH"));
+//        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yPC"));
-        System.out.println(op.getPrimalSolution("yHC"));
+//        System.out.println(op.getPrimalSolution("yHC"));
 
 
         displayResults(producers, hubs, customers, op);
@@ -424,14 +419,17 @@ public class Main {
         }
     }
 
-    private static void calculateDemand(Customer[] customers, double[][][] demand) {
-        for (int i = 0; i < customers.length; i++) {
+    private static void calculateDemand(double[][][] demand, int start) {
+        for (int i = start; i < customers.length; i++) {
             Map<Integer, Map<String, Integer>> prodDemand = customers[i].getDemand();
             for (int j = 0; j < prodDemand.size(); j++) {
                 Map<String, Integer> period = prodDemand.get(j);
                 int k = 0;
                 for (Map.Entry<String, Integer> pair : period.entrySet()) {
                     double value = pair.getValue();
+                    if (value > bigM) {
+                        bigM = 200 * (int) value;
+                    }
                     demand[i][j][k] = (double) (int) value;
                     k++;
                 }
@@ -439,14 +437,17 @@ public class Main {
         }
     }
 
-    private static void calculateOffer(Producer[] producers, double[][][] offer) {
-        for (int i = 0; i < producers.length; i++) {
+    private static void calculateOffer(double[][][] offer, int start) {
+        for (int i = start; i < producers.length; i++) {
             Map<Integer, Map<String, Integer>> prodSupply = producers[i].getSupply();
             for (int j = 0; j < prodSupply.size(); j++) {
                 Map<String, Integer> period = prodSupply.get(j);
                 int k = 0;
                 for (Map.Entry<String, Integer> pair : period.entrySet()) {
                     double value = pair.getValue();
+                    if (value > bigM) {
+                        bigM = 200 * (int) value;
+                    }
                     offer[i][j][k] = (double) (int) value;
                     k++;
                 }
