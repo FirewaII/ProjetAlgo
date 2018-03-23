@@ -56,7 +56,7 @@ public class Main {
         int nbPeriodes = 3;
 
 //         Sets
-        Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
+        producers = new Producer[]{new Producer(0, "Fiction", 45.14429, 5.20811),
                 new Producer(1, "Ferme1", 45.14429, 5.20811),
                 new Producer(2, "Ferme2", 45.71531, 5.67431),
                 new Producer(3, "Ferme3", 45.52911, 5.73944)};
@@ -72,7 +72,7 @@ public class Main {
             }
         }
 
-        Hub[] hubs = {new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
+        hubs = new Hub[]{new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
                 new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
 
         double[][] openCost = new double[hubs.length][1];
@@ -80,7 +80,7 @@ public class Main {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
+        customers = new Customer[]{new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
                 new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
                 new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
                 new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
@@ -220,7 +220,7 @@ public class Main {
         op.addConstraint("sum(yPC,2) + sum(yPH,2) == offer");
 
         // produits sortants par hub == Somme des produits entrants par hub
-//        op.addConstraint("sum(yPH,1) - sum(yHC,2) == 0 ");
+        op.addConstraint("sum(yPH,1) - sum(yHC,2) == 0 ");
 
         // produits entrants par client == Demande du client
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
@@ -259,10 +259,9 @@ public class Main {
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 
 
-//        System.out.println(op.getPrimalSolution("yPH"));
-//        System.out.println(op.getPrimalSolution("yHH"));
+        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yPC"));
-//        System.out.println(op.getPrimalSolution("yHC"));
+        System.out.println(op.getPrimalSolution("yHC"));
 
 
         displayResults(producers, hubs, customers, op);
@@ -280,7 +279,7 @@ public class Main {
             }
             idx++;
         }
-        if (useAPI) {
+        if (true) {
 
             // get the screen size as a java dimension
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -463,7 +462,7 @@ public class Main {
 //                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                     result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
                 }
-                if (matrixType.equals("yHC") && !customers[i].getName().equals("Fiction") && matrix[i][j] != 0) {
+                if (matrixType.equals("yHC") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0) {
 //                    result += "&path=" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                     result += "&path=" + Double.toString(hubs[i].getLatitude()) + "," + Double.toString(hubs[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
                 }
