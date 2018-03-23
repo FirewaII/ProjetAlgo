@@ -1,5 +1,6 @@
 
-import Tools.ExcelTools;
+//import Tools.ExcelTools;
+
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
@@ -9,10 +10,8 @@ import sun.misc.Unsafe;
 import java.awt.*;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.*;
 
 import static java.lang.Integer.max;
@@ -25,12 +24,12 @@ import java.net.URL;
 import javax.swing.*;
 
 public class Main {
-    static List<Integer> chosenHubs = new ArrayList<>();
-    static OptimizationProblem op;
-    static Producer[] producers;
-    static Customer[] customers;
-    static Hub[] hubs;
-    static boolean useAPI;
+    private static List<Integer> chosenHubs = new ArrayList<>();
+    private static OptimizationProblem op;
+    private static Producer[] producers;
+    private static Customer[] customers;
+    private static Hub[] hubs;
+    private static boolean useAPI;
 
     public static void main(String[] args) throws Exception {
 
@@ -38,110 +37,125 @@ public class Main {
         disableWarning();
 
         /* Get Excel file */
-        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
+//        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
+//        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx"); // Launching with IDE
+//        File excelFile = new File("res/Projet_DistAgri_Inst_Grande.xlsx"); // Launching with IDE
         //File excelFile = new File(args[0]);
 
         System.out.println("Adding locations...");
         /* Initialise variables */
-        producers = ExcelTools.readProducers(excelFile);
-        hubs = ExcelTools.readHubs(excelFile);
-        customers = ExcelTools.readCustomers(excelFile);
+//        producers = ExcelTools.readProducers(excelFile);
+//        hubs = ExcelTools.readHubs(excelFile);
+//        customers = ExcelTools.readCustomers(excelFile);
 
         // frame Vars
-//        Random ran = new Random();
-        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
-//        int qProduits = 100;
+        Random ran = new Random();
+//        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
+        int nbProduits = 3;
+        int qProduits = 100;
+        int nbPeriodes = 3;
 
-        // Sets
-//        Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
-//                new Producer(1, "Ferme1", 45.14429, 5.20811),
-//                new Producer(2, "Ferme2", 45.71531, 5.67431),
-//                new Producer(3, "Ferme3", 45.52911, 5.73944)};
-//
-//        for (Producer producer : producers) {
-//            if (producer.getName().equals("Fiction")) {
-//                continue;
-//            }
-//            producer.setSupply("Produits laitiers vache", ran.nextInt(qProduits));
-//            producer.setSupply("Produits laitiers chèvre", ran.nextInt(qProduits));
-//            producer.setSupply("Fruits", ran.nextInt(qProduits));
-//        }
+//         Sets
+        Producer[] producers = {new Producer(0, "Fiction", 45.14429, 5.20811),
+                new Producer(1, "Ferme1", 45.14429, 5.20811),
+                new Producer(2, "Ferme2", 45.71531, 5.67431),
+                new Producer(3, "Ferme3", 45.52911, 5.73944)};
 
-//        Hub[] hubs = {new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
-//                new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
+        for (Producer producer : producers) {
+            if (producer.getName().equals("Fiction")) {
+                continue;
+            }
+            for (int i = 0; i < nbPeriodes; i++) {
+                producer.setSupply(i, "Produits laitiers vache", ran.nextInt(qProduits));
+                producer.setSupply(i, "Produits laitiers chèvre", ran.nextInt(qProduits));
+                producer.setSupply(i, "Fruits", ran.nextInt(qProduits));
+            }
+        }
+
+        Hub[] hubs = {new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
+                new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
 
         double[][] openCost = new double[hubs.length][1];
         for (int i = 0; i < hubs.length; i++) {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-//        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
-//                new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
-//                new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
-//                new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
-//                new Customer(4, "Client 4", "Supermarché", 45.5967377, 5.0944433),
-//                new Customer(5, "Client 5", "Supermarché", 45.6732628, 5.4846254)};
-//
-//        for (Customer customer : customers) {
-//            if (customer.getName().equals("Fiction")) {
-//                continue;
-//            }
-//            customer.setDemand("Produits laitiers vache", ran.nextInt(qProduits));
-//            customer.setDemand("Produits laitiers chèvre", ran.nextInt(qProduits));
-//            customer.setDemand("Fruits", ran.nextInt(qProduits));
-//        }
+        Customer[] customers = {new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
+                new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
+                new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
+                new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
+                new Customer(4, "Client 4", "Supermarché", 45.5967377, 5.0944433),
+                new Customer(5, "Client 5", "Supermarché", 45.6732628, 5.4846254)};
+
+        for (Customer customer : customers) {
+            if (customer.getName().equals("Fiction")) {
+                continue;
+            }
+            for (int i = 0; i < nbPeriodes; i++) {
+                customer.setDemand(i, "Produits laitiers vache", ran.nextInt(qProduits));
+                customer.setDemand(i, "Produits laitiers chèvre", ran.nextInt(qProduits));
+                customer.setDemand(i, "Fruits", ran.nextInt(qProduits));
+            }
+        }
 
         System.out.println("Calculating initial O/D...");
         // Offer / Demand
-        double[][] offer = new double[producers.length][nbProduits];
-        double[][] demand = new double[customers.length][nbProduits];
+        double[][][] offer = new double[producers.length][nbPeriodes][nbProduits];
+        double[][][] demand = new double[customers.length][nbPeriodes][nbProduits];
         calculateOffer(producers, offer);
         calculateDemand(customers, demand);
 
-        int[] prodOffer = new int[nbProduits];
-        for (double[] subOffer : offer) {
-            for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
-                prodOffer[currentProd] += subOffer[currentProd];
+        int[] prodOffer = new int[nbPeriodes];
+        for (double[][] subOffer : offer) {
+            for (int i = 0; i < nbPeriodes; i++) {
+                for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
+                    prodOffer[i] += subOffer[i][currentProd];
+                }
+            }
 
+        }
+
+        int[] prodDemand = new int[nbPeriodes];
+        for (double[][] subDemand : demand) {
+            for (int i = 0; i < nbPeriodes; i++) {
+                for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
+                    prodDemand[i] += subDemand[i][currentProd];
+                }
             }
         }
 
-        int[] prodDemand = new int[nbProduits];
-        for (double[] subDemand : demand) {
-            for (int currentProd = 0; currentProd < nbProduits; currentProd++) {
-                prodDemand[currentProd] += subDemand[currentProd];
-            }
-        }
 
         // Big M
         int totalOffer = IntStream.of(prodOffer).sum();
         int totalDemand = IntStream.of(prodDemand).sum();
-        int M = max(totalOffer, totalDemand);
-
-
+        int M = max(totalDemand, totalOffer);
+//
+//
         System.out.println("Adding fictive O/D...");
         // Fictive offer/demand
-        for (int i = 0; i < nbProduits; i++) {
-            int offset = prodOffer[i] - prodDemand[i];
-            if (prodDemand[i] > prodOffer[i]) {
-                producers[0].setSupply("Produit fictif " + i, -offset);
-                customers[0].setDemand("Produit fictif " + i, 0);
-            } else {
-                customers[0].setDemand("Produit fictif " + i, offset);
-                producers[0].setSupply("Produit fictif " + i, 0);
+        for (int i = 0; i < nbPeriodes; i++) {
+            for (int j = 0; j < nbProduits; j++) {
+                int offset = prodOffer[j] - prodDemand[j];
+                if (prodDemand[j] > prodOffer[j]) {
+                    producers[0].setSupply(i, "Produit fictif " + j, -offset);
+                    customers[0].setDemand(i, "Produit fictif " + j, 0);
+                } else {
+                    customers[0].setDemand(i, "Produit fictif " + j, offset);
+                    producers[0].setSupply(i, "Produit fictif " + j, 0);
+                }
             }
         }
 
 
         // Shipping cost using distances
         // Prod => Hub
-        double[][][] cPH = new double[producers.length][hubs.length][nbProduits];
+        double[][][][] cPH = new double[producers.length][hubs.length][nbPeriodes][nbProduits];
         // Hub => Client
-        double[][][] cHC = new double[hubs.length][customers.length][nbProduits];
+        double[][][][] cHC = new double[hubs.length][customers.length][nbPeriodes][nbProduits];
         // Prod => Client
-        double[][][] cPC = new double[producers.length][customers.length][nbProduits];
+        double[][][][] cPC = new double[producers.length][customers.length][nbPeriodes][nbProduits];
         // Hub => Hub
-        double[][][] cHH = new double[hubs.length][hubs.length][nbProduits];
+        double[][][][] cHH = new double[hubs.length][hubs.length][nbPeriodes][nbProduits];
 
         // Inclusion de la O/D fictive
         calculateOffer(producers, offer);
@@ -150,7 +164,8 @@ public class Main {
         System.out.println("Calculating shipping costs, this might take a while...");
         // Calcul des couts de transport en fonction de la distance (km)
 
-        calculateShippingCosts(producers, hubs, customers, nbProduits, cPH, cHC, cPC, cHH, excelFile);
+//        calculateShippingCosts(producers, hubs, customers, nbProduits, cPH, cHC, cPC, cHH, excelFile);
+        calculateShippingCosts(producers, hubs, customers, nbPeriodes, nbProduits, cPH, cHC, cPC, cHH, null);
 
 //        cPH = new double[][][]{{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}
 //                , {{56.0, 56.0, 56.0}, {67.0, 67.0, 67.0}}
@@ -179,10 +194,10 @@ public class Main {
         /* Add the decision variables to the problem */
         op.addDecisionVariable("isOpen", true, new int[]{hubs.length, 1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         // Nombre de produits à transferer
-        op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbProduits}, 0, M);
-        op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbProduits}, 0, M);
-        op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length, nbProduits}, 0, M);
-        op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length, nbProduits}, 0, M);
+        op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbPeriodes, nbProduits}, 0, M);
+        op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbPeriodes, nbProduits}, 0, M);
+        op.addDecisionVariable("yHC", true, new int[]{hubs.length, customers.length, nbPeriodes, nbProduits}, 0, M);
+        op.addDecisionVariable("yHH", true, new int[]{hubs.length, hubs.length, nbPeriodes, nbProduits}, 0, M);
 
         System.out.println("Preparing input parameters...");
         /* Set value for the input parameters */
@@ -238,7 +253,7 @@ public class Main {
 //        hubs = null;
 
         /* Print the solution */
-        System.out.println("\nOptimal cost: " + op.getOptimalCost()+ "\n");
+        System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 
 
 //        System.out.println(op.getPrimalSolution("yPH"));
@@ -262,7 +277,7 @@ public class Main {
             }
             idx++;
         }
-        if (true) {
+        if (useAPI) {
 
             // get the screen size as a java dimension
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -274,7 +289,7 @@ public class Main {
 
             JFrame frame = new JFrame("Google Maps");
             // set the jframe height and width
-            frame.setPreferredSize(new Dimension(600,600));
+            frame.setPreferredSize(new Dimension(600, 600));
             //Ajout des producteurs
             String mapString = "";
             for (int i = 1; i < producers.length; i++) {
@@ -291,8 +306,8 @@ public class Main {
             }
 
             try {
-                String latitude = "45.1934574";
-                String longitude = "5.7682659";
+//                String latitude = "45.1934574";
+//                String longitude = "5.7682659";
                 String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
                         + mapString
                         + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
@@ -330,18 +345,23 @@ public class Main {
         }
     }
 
-    private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbProduits, double[][][] cPH, double[][][] cHC, double[][][] cPC, double[][][] cHH, File excelFile) throws Exception {
+    private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbPeriodes, int nbProduits, double[][][][] cPH, double[][][][] cHC, double[][][][] cPC, double[][][][] cHH, File excelFile) throws Exception {
 
-        double costPtoC = ExcelTools.readCost(excelFile, "PtoC");
-        double costHtoC = ExcelTools.readCost(excelFile, "HtoC");
-        double costPtoH = ExcelTools.readCost(excelFile, "PtoH");
-        double costHtoH = ExcelTools.readCost(excelFile, "HtoH");
+//        double costPtoC = ExcelTools.readCost(excelFile, "PtoC");
+//        double costHtoC = ExcelTools.readCost(excelFile, "HtoC");
+//        double costPtoH = ExcelTools.readCost(excelFile, "PtoH");
+//        double costHtoH = ExcelTools.readCost(excelFile, "HtoH");
+        double costPtoC = 1;
+        double costHtoC = 0.5;
+        double costPtoH = 1;
+        double costHtoH = 0.5;
         int coefP; // Coef prod fictif
         int coefC; // Coef client fictif
         double cost;
 
         //Définir si on utilise l'API
         int nbPaths = customers.length * hubs.length + producers.length * hubs.length + producers.length * customers.length + hubs.length * hubs.length;
+
         if (nbPaths > 7500) {
             useAPI = false;
         }
@@ -355,64 +375,79 @@ public class Main {
             }
             for (int j = 0; j < hubs.length; j++) {
                 cost = (producers[i].getDistanceTo(hubs[j], useAPI) / 1000) * costPtoH * coefP;
-                for (int l = 0; l < nbProduits; l++) {
-                    cPH[i][j][l] = cost;
+                for (int k = 0; k < nbPeriodes; k++) {
+                    for (int l = 0; l < nbProduits; l++) {
+                        cPH[i][j][k][l] = cost;
+                    }
                 }
             }
-            for (int k = 0; k < customers.length; k++) {
+            for (int j = 0; j < customers.length; j++) {
                 if (customers[i].getName().equals("Fiction")) {
                     coefC = 0;
                 } else {
                     coefC = 1;
                 }
-                cost = (producers[i].getDistanceTo(customers[k], useAPI) / 1000) * costPtoC * coefC * coefP;
+                cost = (producers[i].getDistanceTo(customers[j], useAPI) / 1000) * costPtoC * coefC * coefP;
                 for (int l = 0; l < nbProduits; l++) {
-                    cPC[i][k][l] = cost;
+                    for (int k = 0; k < nbPeriodes; k++) {
+                        cPC[i][j][k][l] = cost;
+                    }
                 }
 
             }
         }
 
-        for (int j = 0; j < hubs.length; j++) {
-            for (int h = 0; h < hubs.length; h++) {
-                cost = (hubs[j].getDistanceTo(hubs[h], useAPI) / 1000) * costHtoH;
-                for (int l = 0; l < nbProduits; l++) {
-                    cHH[j][h][l] = cost;
+        for (int i = 0; i < hubs.length; i++) {
+            for (int j = 0; j < hubs.length; j++) {
+                cost = (hubs[i].getDistanceTo(hubs[j], useAPI) / 1000) * costHtoH;
+                for (int k = 0; k < nbPeriodes; k++) {
+                    for (int l = 0; l < nbProduits; l++) {
+                        cHH[i][j][k][l] = cost;
+                    }
                 }
             }
-            for (int k = 0; k < customers.length; k++) {
-                if (customers[k].getName().equals("Fiction")) {
+            for (int j = 0; j < customers.length; j++) {
+                if (customers[j].getName().equals("Fiction")) {
                     coefC = 0;
                 } else {
                     coefC = 1;
                 }
-                cost = (hubs[j].getDistanceTo(customers[k], useAPI) / 1000) * costHtoC * coefC;
-
-                for (int l = 0; l < nbProduits; l++) {
-                    cHC[j][k][l] = cost;
+                cost = (hubs[i].getDistanceTo(customers[j], useAPI) / 1000) * costHtoC * coefC;
+                for (int k = 0; k < nbPeriodes; k++) {
+                    for (int l = 0; l < nbProduits; l++) {
+                        cHC[i][k][k][l] = cost;
+                    }
                 }
             }
         }
     }
 
-    private static void calculateDemand(Customer[] customers, double[][] demand) {
+    private static void calculateDemand(Customer[] customers, double[][][] demand) {
         for (int i = 0; i < customers.length; i++) {
-            Map custDemand = customers[i].getDemand();
-            int j = 0;
-            for (Object value : custDemand.values()) {
-                demand[i][j] = (double) (int) value;
-                j++;
+            Map<Integer, Map<String, Integer>> prodDemand = customers[i].getDemand();
+            for (int j = 0; j < prodDemand.size(); j++) {
+                Map<String, Integer> period = prodDemand.get(j);
+                int k = 0;
+                for (Map.Entry<String, Integer> pair : period.entrySet()) {
+                    double value = pair.getValue();
+                    demand[i][j][k] = (double) (int) value;
+                    k++;
+                }
             }
         }
     }
 
-    private static void calculateOffer(Producer[] producers, double[][] offer) {
+    private static void calculateOffer(Producer[] producers, double[][][] offer) {
         for (int i = 0; i < producers.length; i++) {
-            Map prodSupply = producers[i].getSupply();
-            int j = 0;
-            for (Object value : prodSupply.values()) {
-                offer[i][j] = (double) (int) value;
-                j++;
+            Map<Integer, Map<String, Integer>> prodSupply = producers[i].getSupply();
+            for (int j = 0; j < prodSupply.size(); j++) {
+                Map<String, Integer> period = prodSupply.get(j);
+                int k = 0;
+                for (Map.Entry<String, Integer> pair : period.entrySet()) {
+                    double value = pair.getValue();
+                    offer[i][j][k] = (double) (int) value;
+                    k++;
+                }
             }
         }
     }

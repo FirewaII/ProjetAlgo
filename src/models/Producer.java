@@ -1,29 +1,32 @@
 package models;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Producer extends models.Location {
-    private Map<String, Integer> supply;
+    private Map<Integer, Map<String, Integer>> supply;
 
-    public Producer(int noProd, String name, double longitude, double latitude, Map<String, Integer> supply){
-        super(noProd,name,longitude,latitude);
-        this.supply = supply;
+    public Producer(int noProd, String name, double longitude, double latitude) {
+        super(noProd, name, longitude, latitude);
+        this.supply = new HashMap<>();
     }
 
-    public Producer(int noProd, String name, double longitude, double latitude){
-        super(noProd,name,longitude,latitude);
-        this.supply = new HashMap<String, Integer>();
-    }
-
-    public Map<String, Integer> getSupply() {
+    public Map<Integer, Map<String, Integer>> getSupply() {
         return supply;
     }
 
-    public void setSupply(String key, int value) {
+    public void setSupply(int period, String key, int value) {
         assert value >= 0;
         assert !key.equals("");
-        assert !this.supply.containsKey(key);
-        this.supply.put(key, value);
+
+        if (!supply.containsKey(period)) {
+            HashMap<String, Integer> subSupply = new HashMap<>();
+            subSupply.put(key, value);
+            this.supply.put(period, subSupply);
+        } else {
+            this.supply.get(period).put(key, value);
+        }
+
     }
 }

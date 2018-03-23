@@ -5,18 +5,13 @@ import java.util.Map;
 
 public class Customer extends models.Location {
     private String cat;
-    private Map<String, Integer> demand;
+    private Map<Integer,Map<String, Integer>> demand;
 
-    public Customer(int noCustomer, String name, String cat, double longitude, double latitude, Map<String, Integer> demand) {
-        super(noCustomer, name, longitude, latitude);
-        this.cat = cat;
-        this.demand = demand;
-    }
 
     public Customer(int noCustomer, String name, String cat, double longitude, double latitude) {
         super(noCustomer, name, longitude, latitude);
         this.cat = cat;
-        this.demand = new HashMap<String, Integer>();
+        this.demand = new HashMap<>();
     }
 
     public String getCat() {
@@ -27,14 +22,20 @@ public class Customer extends models.Location {
         this.cat = cat;
     }
 
-    public Map<String, Integer> getDemand() {
+    public Map<Integer,Map<String, Integer>> getDemand() {
         return demand;
     }
 
-    public void setDemand(String key, int value) {
+    public void setDemand(int period, String key, int value) {
         assert value >= 0;
         assert !key.equals("");
-        assert !this.demand.containsKey(key);
-        this.demand.put(key, value);
+
+        if (!demand.containsKey(period)) {
+            HashMap<String, Integer> subDemand = new HashMap<>();
+            subDemand.put(key, value);
+            this.demand.put(period, subDemand);
+        } else {
+            this.demand.get(period).put(key, value);
+        }
     }
 }
