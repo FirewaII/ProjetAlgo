@@ -220,13 +220,16 @@ public class Main {
         op.addConstraint("sum(yPC,2) + sum(yPH,2) == offer");
 
         // produits sortants par hub == Somme des produits entrants par hub
-        op.addConstraint("sum(yPH,1) - sum(yHC,2) == 0 ");
+//        op.addConstraint("sum(yPH,1) - sum(yHC,2) == 0 ");
 
         // produits entrants par client == Demande du client
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(sum(yPH,3),1) <= M * sum(isOpen,1)");
+        op.addConstraint("sum(sum(sum(yPH,4),3),1) <= M * sum(isOpen,1)");
+
+        // Contrainte ouvertue Hub, s'il existe un flux entre un client et un hub , le hub est alors considéré ouvert
+        op.addConstraint("sum(sum(sum(yHC,4),3),2) <= M * sum(isOpen,1)");
 
 
         System.out.println("Setting objective functions...");
