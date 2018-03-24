@@ -53,8 +53,8 @@ public class Main {
         Random ran = new Random();
 //        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
         int nbProduits = 3;
-        int qProduits = 1000;
-        int nbPeriodes = 2;
+        int qProduits = 200;
+        int nbPeriodes = 10;
 
 //         Sets
         producers = new Producer[]{new Producer(0, "Fiction", 45.14429, 5.20811),
@@ -73,8 +73,8 @@ public class Main {
             }
         }
 
-        hubs = new Hub[]{new Hub(1, "Voiron", 17000, 45.35276, 5.56985),
-                new Hub(2, "MIN de Grenoble", 15500, 45.17232, 5.71741)};
+        hubs = new Hub[]{new Hub(1, "Voiron", 0, 45.35276, 5.56985),
+                new Hub(2, "MIN de Grenoble", 0, 45.17232, 5.71741)};
 
         double[][] openCost = new double[hubs.length][1];
         for (int i = 0; i < hubs.length; i++) {
@@ -179,6 +179,10 @@ public class Main {
 //        cHH = new double[][][]{{{0.0, 0.0, 0.0}, {14.0, 14.0, 14.0}}, {{13.5, 13.5, 13.5}, {0.0, 0.0, 0.0}}};
         System.out.println("Costs calculated");
 
+        double[][] bigMatrix = new double[hubs.length][nbPeriodes];
+        // Fill each row with 1.0
+        for (double[] row: bigMatrix)
+            Arrays.fill(row,bigM);
 
 
         /* Create the optimization problem object */
@@ -187,7 +191,7 @@ public class Main {
 
         System.out.println("Adding decision variables...");
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("isOpen", true, new int[]{hubs.length,nbPeriodes, nbProduits}, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("isOpen", true, new int[]{hubs.length,1}, 0, 1);  // name, isInteger, size , minValue, maxValue
         // Nombre de produits à transferer
         op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbPeriodes, nbProduits}, 0, bigM);
         op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbPeriodes, nbProduits}, 0, bigM);
@@ -200,6 +204,7 @@ public class Main {
         op.setInputParameter("offer", new DoubleMatrixND(offer));
         op.setInputParameter("demand", new DoubleMatrixND(demand));
         op.setInputParameter("M", bigM);
+        op.setInputParameter("bigMatrix", bigMatrix);
 
         // Cout de transfert
         op.setInputParameter("cPH", new DoubleMatrixND(cPH));
@@ -220,16 +225,16 @@ public class Main {
         // produits entrants par client == Demande du client
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
-        // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(yPH,1) <= M * isOpen");
+        // Contrainte ouverture Hub, s'il existe un flux entre un producteur et un hub ,peu importe la periode, le hub est alors considéré ouvert
+        op.addConstraint("sum(sum(sum(yPH,4),3),1) <= M * sum(isOpen,1)");
 
-        // Contrainte ouvertue Hub, s'il existe un flux entre un client et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(yHC,2) <= M * isOpen");
+        // Contrainte ouverture Hub, s'il existe un flux entre un client et un hub,peu importe la periode, le hub est alors considéré ouvert
+        op.addConstraint("sum(sum(sum(yHC,4),3),2) <= M * sum(isOpen,1)");
 
 
         System.out.println("Setting objective functions...");
         /* Sets the objective function */
-        op.setObjectiveFunction("minimize", "sum(sum(sum(isOpen,3),2) .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
+        op.setObjectiveFunction("minimize", "sum(isOpen .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
 
 
         /* Call the solver to solve the problem */
@@ -293,6 +298,7 @@ public class Main {
             }
             for (int i = 0; i < chosenHubs.size(); i++) {
 //                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
+                System.out.println(chosenHubs.get(i).getName());
                 mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(chosenHubs.get(i).getLatitude()) + "," + Double.toString(chosenHubs.get(i).getLongitude());
             }
 
@@ -304,7 +310,7 @@ public class Main {
                         + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
                         + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
                         + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
-//                System.out.println(imageUrl);
+                System.out.println(imageUrl);
                 String destinationFile = "image.jpg";
                 // read the map image from Google
                 // then save it to a local file: image.jpg
@@ -422,7 +428,7 @@ public class Main {
                 for (Map.Entry<String, Integer> pair : period.entrySet()) {
                     double value = pair.getValue();
                     if (value > bigM) {
-                        bigM = 200 * (int) value;
+                        bigM = 100 * (int) value;
                     }
                     demand[i][j][k] = (double) (int) value;
                     k++;
@@ -440,7 +446,7 @@ public class Main {
                 for (Map.Entry<String, Integer> pair : period.entrySet()) {
                     double value = pair.getValue();
                     if (value > bigM) {
-                        bigM = 200 * (int) value;
+                        bigM = 100 * (int) value;
                     }
                     offer[i][j][k] = (double) (int) value;
                     k++;
@@ -457,13 +463,15 @@ public class Main {
 //                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                     result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
                 }
-                if (matrixType.equals("yHC") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0) {
+                if (matrixType.equals("yHC") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0 && chosenHubs.contains(hubs[i])) {
 //                    result += "&path=" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                     result += "&path=" + Double.toString(hubs[i].getLatitude()) + "," + Double.toString(hubs[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
+                    System.out.println("ADDED :"+hubs[i].getName());
                 }
-                if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j] != 0) {
+                if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j] != 0 && chosenHubs.contains(hubs[j])) {
 //                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
                     result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(hubs[j].getLatitude()) + "," + Double.toString(hubs[j].getLongitude());
+                    System.out.println("ADDED :"+hubs[i].getName());
                 }
             }
         }
