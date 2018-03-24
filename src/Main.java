@@ -187,7 +187,7 @@ public class Main {
 
         System.out.println("Adding decision variables...");
         /* Add the decision variables to the problem */
-        op.addDecisionVariable("isOpen", true, new int[]{hubs.length,nbPeriodes}, 0, 1);  // name, isInteger, size , minValue, maxValue
+        op.addDecisionVariable("isOpen", true, new int[]{hubs.length,nbPeriodes, nbProduits}, 0, 1);  // name, isInteger, size , minValue, maxValue
         // Nombre de produits à transferer
         op.addDecisionVariable("yPC", true, new int[]{producers.length, customers.length, nbPeriodes, nbProduits}, 0, bigM);
         op.addDecisionVariable("yPH", true, new int[]{producers.length, hubs.length, nbPeriodes, nbProduits}, 0, bigM);
@@ -221,15 +221,15 @@ public class Main {
         op.addConstraint("sum(yPC,1) + sum(yHC,1) == demand");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un producteur et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(sum(yPH,4),1) <= M * isOpen");
+        op.addConstraint("sum(yPH,1) <= M * isOpen");
 
         // Contrainte ouvertue Hub, s'il existe un flux entre un client et un hub , le hub est alors considéré ouvert
-        op.addConstraint("sum(sum(yHC,4),2) <= M * isOpen");
+        op.addConstraint("sum(yHC,2) <= M * isOpen");
 
 
         System.out.println("Setting objective functions...");
         /* Sets the objective function */
-        op.setObjectiveFunction("minimize", "sum(sum(isOpen,3),2) .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
+        op.setObjectiveFunction("minimize", "sum(sum(sum(isOpen,3),2) .* openCost) + sum(cPH .* yPH) + sum(cHH .* yHH) + sum(cHC .* yHC) + sum(cPC .* yPC)");
 
 
         /* Call the solver to solve the problem */
