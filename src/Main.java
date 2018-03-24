@@ -53,8 +53,8 @@ public class Main {
         Random ran = new Random();
 //        int nbProduits = max(producers[1].getSupply().size(), customers[1].getDemand().size());
         int nbProduits = 3;
-        int qProduits = 200;
-        int nbPeriodes = 10;
+        int qProduits = 100;
+        int nbPeriodes = 52;
 
 //         Sets
         producers = new Producer[]{new Producer(0, "Fiction", 45.14429, 5.20811),
@@ -73,8 +73,8 @@ public class Main {
             }
         }
 
-        hubs = new Hub[]{new Hub(1, "Voiron", 0, 45.35276, 5.56985),
-                new Hub(2, "MIN de Grenoble", 0, 45.17232, 5.71741)};
+        hubs = new Hub[]{new Hub(1, "Voiron", 5000, 45.35276, 5.56985),
+                new Hub(2, "MIN de Grenoble", 10000, 45.17232, 5.71741)};
 
         double[][] openCost = new double[hubs.length][1];
         for (int i = 0; i < hubs.length; i++) {
