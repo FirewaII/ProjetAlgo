@@ -251,11 +251,11 @@ public class Main {
         System.out.println("\nOptimal cost: " + op.getOptimalCost() + "\n");
 
 
-        System.out.println(op.getPrimalSolution("yPH"));
+//        System.out.println(op.getPrimalSolution("yPH"));
 //        System.out.println(op.getPrimalSolution("yPC"));
-        System.out.println(op.getPrimalSolution("yHC"));
+//        System.out.println(op.getPrimalSolution("yHC"));
 
-        System.out.println(op.getPrimalSolution("isOpen"));
+//        System.out.println(op.getPrimalSolution("isOpen"));
 
 
         displayResults(producers, hubs, customers, op);
@@ -298,7 +298,7 @@ public class Main {
             }
             for (int i = 0; i < chosenHubs.size(); i++) {
 //                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(hubs[chosenHubs.get(i)].getLongitude()) + "," + Double.toString(hubs[chosenHubs.get(i)].getLatitude());
-                System.out.println(chosenHubs.get(i).getName());
+//                System.out.println(chosenHubs.get(i).getName());
                 mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(chosenHubs.get(i).getLatitude()) + "," + Double.toString(chosenHubs.get(i).getLongitude());
             }
 
@@ -310,7 +310,7 @@ public class Main {
                         + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
                         + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
                         + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000");
-                System.out.println(imageUrl);
+//                System.out.println(imageUrl);
                 String destinationFile = "image.jpg";
                 // read the map image from Google
                 // then save it to a local file: image.jpg
@@ -466,12 +466,12 @@ public class Main {
                 if (matrixType.equals("yHC") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0 && chosenHubs.contains(hubs[i])) {
 //                    result += "&path=" + Double.toString(hubs[i].getLongitude()) + "," + Double.toString(hubs[i].getLatitude()) + "|" + Double.toString(customers[j].getLongitude()) + "," + Double.toString(customers[j].getLatitude());
                     result += "&path=" + Double.toString(hubs[i].getLatitude()) + "," + Double.toString(hubs[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
-                    System.out.println("ADDED :"+hubs[i].getName());
+//                    System.out.println("ADDED :"+hubs[i].getName());
                 }
                 if (matrixType.equals("yPH") && !producers[i].getName().equals("Fiction") && matrix[i][j] != 0 && chosenHubs.contains(hubs[j])) {
 //                    result += "&path=" + Double.toString(producers[i].getLongitude()) + "," + Double.toString(producers[i].getLatitude()) + "|" + Double.toString(hubs[j].getLongitude()) + "," + Double.toString(hubs[j].getLatitude());
                     result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(hubs[j].getLatitude()) + "," + Double.toString(hubs[j].getLongitude());
-                    System.out.println("ADDED :"+hubs[i].getName());
+//                    System.out.println("ADDED :"+hubs[i].getName());
                 }
             }
         }
