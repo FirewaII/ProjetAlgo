@@ -11,6 +11,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.time.Period;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -81,10 +83,10 @@ public class ExcelTools {
             if(locations != null) {
                 try {
                     // Set fictionnal producer
-                    producers[0] = new Producer(0, "Fiction", 45.1934574, 5.7682659, new HashMap<String, Integer>());
+                    producers[0] = new Producer(0, "Fiction", 45.14429, 5.20811);
                     for (int i = 0; i < locations.length; i++) {
                         Location currentLoc = locations[i];
-                        producers[i + 1] = new Producer(currentLoc.getNoPlace(), currentLoc.getName(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<String, Integer>());
+                        producers[i + 1] = new Producer(currentLoc.getNoPlace(), currentLoc.getName(), currentLoc.getLongitude(), currentLoc.getLatitude());
                     }
 
                     FileInputStream fs = new FileInputStream(file);
@@ -95,7 +97,7 @@ public class ExcelTools {
 
                     /* Get producer supplies */
                     int rNum = 1;
-                    int supply;
+                    int supplyQuantity;
                     int col;
                     row = sheet.getRow(rNum);
                     HashSet<String> products = new HashSet<>(); // Set of products
@@ -107,17 +109,14 @@ public class ExcelTools {
                         }
 
                         col = 2;
-                        supply = 0;
                         cell = row.getCell(col);
-                        while (cell != null) {
-                            supply += Integer.parseInt(cell.getRawValue());
+                        while (sheet.getRow(0).getCell(col) != null && sheet.getRow(0).getCell(col).getStringCellValue().startsWith("Sem")) {
+                            supplyQuantity = Integer.parseInt(cell.getRawValue());
+                            Producer currentProducer = producers[Integer.parseInt(row.getCell(0).getRawValue())];
+                            currentProducer.setSupply(col-2, product, supplyQuantity);
                             col++;
                             cell = row.getCell(col);
                         }
-
-                        Producer currentProducer = producers[Integer.parseInt(row.getCell(0).getRawValue())];
-
-                        currentProducer.setSupply(product, supply);
 
                         rNum++;
                         row = sheet.getRow(rNum);
@@ -129,8 +128,10 @@ public class ExcelTools {
                             if (producer.getSupply().size() != products.size()) {
                                 for (String product : products
                                         ) {
-                                    if (!producer.getSupply().containsKey(product)) {
-                                        producer.setSupply(product, 0);
+                                    for (int i = 0; i < producer.getSupply().size() ; i++){
+                                        if (!producer.getSupply().get(i).containsKey(product)) {
+                                            producer.setSupply(i, product, 0);
+                                        }
                                     }
                                 }
                             }
@@ -171,13 +172,13 @@ public class ExcelTools {
 
                 if (locations != null){
                     // Set fictional customer
-                    customers[0] = new Customer(0, "Fiction", "Supermarché", 45.1934574, 5.7682659, new HashMap<String, Integer>());
+                    customers[0] = new Customer(0, "Fiction", "Supermarché", 45.1934574, 5.7682659);
                     for (int i = 0; i < locations.length; i++) {
                         Location currentLoc = locations[i];
                         row = sheet.getRow(currentLoc.getNoPlace());
                         cell = row.getCell(colCategorie);
 
-                        customers[i + 1] = new Customer(currentLoc.getNoPlace(), currentLoc.getName(), cell.getStringCellValue(), currentLoc.getLongitude(), currentLoc.getLatitude(), new HashMap<String, Integer>());
+                        customers[i + 1] = new Customer(currentLoc.getNoPlace(), currentLoc.getName(), cell.getStringCellValue(), currentLoc.getLongitude(), currentLoc.getLatitude());
                     }
                 }
 
@@ -185,25 +186,25 @@ public class ExcelTools {
 
                 /* Get Customer demands */
                 int rNum = 1;
-                int demand;
+                int demandQuantity;
                 row = sheet.getRow(rNum);
                 HashSet<String > products = new HashSet<>(); // Set of products
+
                 while (rNum != sheet.getPhysicalNumberOfRows()){
                     String product = row.getCell(1).getStringCellValue();
                     if(!products.contains(product)){
                         products.add(product);
                     }
+
                     col = 2;
-                    demand = 0;
                     cell = row.getCell(col);
-                    while (cell != null){
-                        demand += Integer.parseInt(cell.getRawValue());
+                    while (sheet.getRow(0).getCell(col) != null && sheet.getRow(0).getCell(col).getStringCellValue().startsWith("Sem")){
+                        demandQuantity = Integer.parseInt(cell.getRawValue());
+                        Customer currentCustomer = customers[Integer.parseInt(row.getCell(0).getRawValue())];
+                        currentCustomer.setDemand(col-2, product, demandQuantity);
                         col++;
                         cell = row.getCell(col);
                     }
-                    Customer currentCustomer = customers[Integer.parseInt(row.getCell(0).getRawValue())];
-
-                    currentCustomer.setDemand(product, demand);
 
                     rNum++;
                     row = sheet.getRow(rNum);
@@ -215,8 +216,10 @@ public class ExcelTools {
                         if (customer.getDemand().size() != products.size()) {
                             for (String product : products
                                     ) {
-                                if (!customer.getDemand().containsKey(product)) {
-                                    customer.setDemand(product, 0);
+                                for (int i = 0; i < customer.getDemand().size() ; i++){
+                                    if (!customer.getDemand().get(i).containsKey(product)) {
+                                        customer.setDemand(i, product, 0);
+                                    }
                                 }
                             }
                         }

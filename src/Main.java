@@ -1,6 +1,7 @@
 
 //import Tools.ExcelTools;
 
+import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
 import models.*;
@@ -39,15 +40,15 @@ public class Main {
 
         /* Get Excel file */
 //        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
-//        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx"); // Launching with IDE
+        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx"); // Launching with IDE
 //        File excelFile = new File("res/Projet_DistAgri_Inst_Grande.xlsx"); // Launching with IDE
         //File excelFile = new File(args[0]);
 
         System.out.println("Adding locations...");
         /* Initialise variables */
-//        producers = ExcelTools.readProducers(excelFile);
-//        hubs = ExcelTools.readHubs(excelFile);
-//        customers = ExcelTools.readCustomers(excelFile);
+        producers = ExcelTools.readProducers(excelFile);
+        hubs = ExcelTools.readHubs(excelFile);
+        customers = ExcelTools.readCustomers(excelFile);
 
         // frame Vars
         Random ran = new Random();
@@ -57,7 +58,7 @@ public class Main {
         int nbPeriodes = 52;
 
 //         Sets
-        producers = new Producer[]{new Producer(0, "Fiction", 45.14429, 5.20811),
+/*        producers = new Producer[]{new Producer(0, "Fiction", 45.14429, 5.20811),
                 new Producer(1, "Ferme1", 45.14429, 5.20811),
                 new Producer(2, "Ferme2", 45.71531, 5.67431),
                 new Producer(3, "Ferme3", 45.52911, 5.73944)};
@@ -74,14 +75,14 @@ public class Main {
         }
 
         hubs = new Hub[]{new Hub(1, "Voiron", 5000, 45.35276, 5.56985),
-                new Hub(2, "MIN de Grenoble", 10000, 45.17232, 5.71741)};
+                new Hub(2, "MIN de Grenoble", 10000, 45.17232, 5.71741)};*/
 
         double[][] openCost = new double[hubs.length][1];
         for (int i = 0; i < hubs.length; i++) {
             openCost[i][0] = (double) hubs[i].getOpCost();
         }
 
-        customers = new Customer[]{new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
+/*        customers = new Customer[]{new Customer(0, "Fiction", "Supermarché", 45.17823, 5.74396),
                 new Customer(1, "Client 1", "Supermarché", 45.17823, 5.74396),
                 new Customer(2, "Client 2", "Supermarché", 45.4327231, 6.0192055),
                 new Customer(3, "Client 3", "Supermarché", 45.1901677, 5.6940435),
@@ -97,7 +98,7 @@ public class Main {
                 customer.setDemand(i, "Produits laitiers chèvre", ran.nextInt(qProduits));
                 customer.setDemand(i, "Fruits", ran.nextInt(qProduits));
             }
-        }
+        }*/
 
         System.out.println("Calculating initial O/D...");
         // Offer / Demand
