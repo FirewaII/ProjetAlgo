@@ -39,8 +39,8 @@ public class Main {
         disableWarning();
 
         /* Get Excel file */
-//        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
-        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx"); // Launching with IDE
+        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
+//        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx"); // Launching with IDE
 //        File excelFile = new File("res/Projet_DistAgri_Inst_Grande.xlsx"); // Launching with IDE
         //File excelFile = new File(args[0]);
 
@@ -345,14 +345,10 @@ public class Main {
 
     private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbPeriodes, int nbProduits, double[][][][] cPH, double[][][][] cHC, double[][][][] cPC, double[][][][] cHH, File excelFile) throws Exception {
 
-//        double costPtoC = ExcelTools.readCost(excelFile, "PtoC");
-//        double costHtoC = ExcelTools.readCost(excelFile, "HtoC");
-//        double costPtoH = ExcelTools.readCost(excelFile, "PtoH");
-//        double costHtoH = ExcelTools.readCost(excelFile, "HtoH");
-        double costPtoC = 1;
-        double costHtoC = 0.5;
-        double costPtoH = 1;
-        double costHtoH = 0.5;
+        double costPtoC = ExcelTools.readShippingCost(excelFile, "PtoC");
+        double costHtoC = ExcelTools.readShippingCost(excelFile, "HtoC");
+        double costPtoH = ExcelTools.readShippingCost(excelFile, "PtoH");
+        double costHtoH = ExcelTools.readShippingCost(excelFile, "HtoH");
         int coefP; // Coef prod fictif
         int coefC; // Coef client fictif
         double cost;
