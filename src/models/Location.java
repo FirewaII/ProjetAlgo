@@ -69,16 +69,6 @@ public class Location {
         this.latitude = latitude;
     }
 
-    /**
-     * Returns the distance between the current location and another one
-     * using the Google Maps API.
-     * The returned value is an Integer and is expressed in meters.
-     * <p>
-     * //     * @param loc Location object metersto which the distance will be calculated
-     *
-     * @return distance in
-     */
-
     protected JSONObject gMapsAPICall(String origin, String destination, String apiKey) throws Exception {
 
         // Shortest path by time
@@ -130,60 +120,53 @@ public class Location {
         return jsonObj;
     }
 
-    public int getDistanceTo(Location loc, boolean API) throws Exception {
+    public int getDistanceTo(Location loc, boolean API) {
+        int distanceResult = 0;
         if (API) {
-        assert loc != null;
-        // Prep URL
-        String origin = String.format("%s,%s", this.getLatitude(), this.getLongitude());
-        String destination = String.format("%s,%s", loc.getLatitude(), loc.getLongitude());
-        try {
-            JSONObject jsonObj = gMapsAPICall(origin, destination, apiKey);
-            // Get distance results
-            int distanceResult = Integer.MAX_VALUE;
-            JSONArray routes = (JSONArray) jsonObj.get("routes");
-            for (int i = 0; i < routes.length(); i++) {
-                JSONObject subElem = (JSONObject) routes.get(i);
-                JSONArray legs = (JSONArray) subElem.get("legs");
-                subElem = (JSONObject) legs.get(0);
-                JSONObject distance = (JSONObject) subElem.get("distance");
-                if (distance.getInt("value") < distanceResult) {
-                    distanceResult = distance.getInt("value");
+            assert loc != null;
+            // Prep URL
+            String origin = String.format("%s,%s", this.getLatitude(), this.getLongitude());
+            String destination = String.format("%s,%s", loc.getLatitude(), loc.getLongitude());
+            try {
+                JSONObject jsonObj = gMapsAPICall(origin, destination, apiKey);
+                // Get distance results
+                distanceResult= Integer.MAX_VALUE;
+                JSONArray routes = (JSONArray) jsonObj.get("routes");
+                for (int i = 0; i < routes.length(); i++) {
+                    JSONObject subElem = (JSONObject) routes.get(i);
+                    JSONArray legs = (JSONArray) subElem.get("legs");
+                    subElem = (JSONObject) legs.get(0);
+                    JSONObject distance = (JSONObject) subElem.get("distance");
+                    if (distance.getInt("value") < distanceResult) {
+                        distanceResult = distance.getInt("value");
+                    }
                 }
+//            System.out.println("NAMES : " + this.name + "  " + loc.name);
+//            System.out.println("NAMES : " + loc.getLatitude() + "  " + loc.getLongitude());
+//            System.out.println("API : " + distanceResult);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            System.out.println("NAMES : " + this.name + "  " + loc.name);
-            System.out.println("NAMES : " + loc.getLatitude() + "  " + loc.getLongitude());
-            System.out.println("API : " + distanceResult);
-            //return distanceResult;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return -1;
 
+        } else {
+            // Orthodromic distance between two points
+            // Set the coordinates in radians
+            double lat1 = Math.toRadians(this.getLatitude());
+            double lon1 = Math.toRadians(this.getLongitude());
+            double lat2 = Math.toRadians(loc.getLatitude());
+            double lon2 = Math.toRadians(loc.getLongitude());
+            //Haverside formula
+            double a = Math.pow(Math.sin((lat2 - lat1) / 2), 2)
+                    + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lon2 - lon1) / 2), 2);
+            double angle = Math.toDegrees(2 * Math.asin(Math.min(1, Math.sqrt(a))));
+            // Calculate the distance in meters (nautical mile*1852)
+            double distance = 1852 * 60 * angle;
+            distanceResult= (int) distance;
         }
-        else {
-        // Orthodromic distance between two points
-        // Set the coordinates in radians
-        double lat1 = Math.toRadians(this.getLatitude());
-        double lon1 = Math.toRadians(this.getLongitude());
-        double lat2 = Math.toRadians(loc.getLatitude());
-        double lon2 = Math.toRadians(loc.getLongitude());
-        //Haverside formula
-        double a = Math.pow(Math.sin((lat2 - lat1) / 2), 2)
-                + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin((lon2 - lon1) / 2), 2);
-        double angle = Math.toDegrees(2 * Math.asin(Math.min(1, Math.sqrt(a))));
-        // Calculate the distance in meters (nautical mile*1852)
-        double distance = 1852 * 60 * angle;
-        return (int) distance;
-    }
+        return distanceResult;
     }
 
-    /**
-     * Reverse function of getDistanceTo.
-     * Returns the distance from another location to the cuurent one.
-     *
-     * @param loc Location object to which the distance will be calculated
-     * @return distance in meters
-     */
+
     public long getDistanceFrom(Location loc, boolean useAPI) throws Exception {
         return loc.getDistanceTo(this, useAPI);
     }

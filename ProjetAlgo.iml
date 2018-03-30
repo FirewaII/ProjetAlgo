@@ -17,5 +17,7 @@
     <orderEntry type="library" name="ParallelColt" level="project" />
     <orderEntry type="library" name="jna-4.5.1" level="project" />
     <orderEntry type="library" name="JOM-0.3.1" level="project" />
+    <orderEntry type="library" name="cplex" level="project" />
+    <orderEntry type="library" name="oplall" level="project" />
   </component>
 </module>
