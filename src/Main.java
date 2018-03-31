@@ -1,6 +1,3 @@
-
-//import Tools.ExcelTools;
-
 import Tools.ExcelTools;
 import com.jom.DoubleMatrixND;
 import com.jom.OptimizationProblem;
@@ -30,21 +27,23 @@ public class Main {
     private static boolean useAPI;
     private static int bigM;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         /* Disable Warnings */
         disableWarning();
 
 
         /* Get Excel file */
+        // Input parameter , comment if you would like to directly parse the three files below
         File excelFile;
-        try{
+        try {
             excelFile = new File(args[0]);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Veuillez vérifier le paramètre saisi");
             return;
         }
+
+        // Uncomment the file you want to parse after commenting the input parameter above
 //        File excelFile = new File("res/Projet_DistAgri_Inst_Petite.xlsx"); // Launching with IDE
 //        File excelFile = new File("res/Projet_DistAgri_Inst_Moyenne.xlsx"); // Launching with IDE
 //        File excelFile = new File("res/Projet_DistAgri_Inst_Grande.xlsx"); // Launching with IDE
@@ -57,7 +56,6 @@ public class Main {
         customers = ExcelTools.readCustomers(excelFile);
 
         /*Vars*/
-//        Random ran = new Random();
         int nbPeriodes = max(producers[1].getSupply().size(), customers[1].getDemand().size());
         int nbProduits = max(producers[1].getSupply().get(1).size(), customers[1].getDemand().get(1).size());
 
@@ -223,28 +221,20 @@ public class Main {
         displayResults(producers, hubs, customers, op);
     }
 
-    public static void displayResults(Producer[] producers, Hub[] hubs, Customer[] customers, OptimizationProblem op) {
+    private static void displayResults(Producer[] producers, Hub[] hubs, Customer[] customers, OptimizationProblem op) {
         String[] results = op.getPrimalSolution("isOpen").toString().split(";;");
         int idx = 0;
         for (String res : results) {
             double open = Double.parseDouble(res);
             if (open == 1.0) {
                 chosenHubs.add(hubs[idx]);
-                //System.out.println(Arrays.deepToString(sumMatrix("yHC")));
                 System.out.println(hubs[idx].getName() + " hub is OPEN\n");
             }
             idx++;
         }
 
-        if (true) {
+        if (useAPI) {
             System.out.println("Affiche des résultats sur IHM");
-            // get the screen size as a java dimension
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
-            // set the jframe to take half of the screen
-            int height = screenSize.height / 2;
-            int width = screenSize.width / 2;
-
 
             JFrame frame = new JFrame("Google Maps");
             // set the jframe height and width
@@ -257,17 +247,17 @@ public class Main {
             for (int i = 1; i < customers.length; i++) {
                 mapString += "&markers=icon:http://pierret.pro/C.png%7C" + Double.toString(customers[i].getLatitude()) + "," + Double.toString(customers[i].getLongitude());
             }
-            for (int i = 0; i < chosenHubs.size(); i++) {
-                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(chosenHubs.get(i).getLatitude()) + "," + Double.toString(chosenHubs.get(i).getLongitude());
+            for (Hub chosenHub : chosenHubs) {
+                mapString += "&markers=icon:http://pierret.pro/H.png%7C" + Double.toString(chosenHub.getLatitude()) + "," + Double.toString(chosenHub.getLongitude());
             }
 
             try {
                 String imageUrl = "https://maps.googleapis.com/maps/api/staticmap?size=4096x4096&scale=2&maptype=roadmap"
                         + mapString
-                        + linkTwoPoints(sumMatrix("yPC"), "yPC", "0000ff")
-                        + linkTwoPoints(sumMatrix("yHC"), "yHC", "00ff00")
-                        + linkTwoPoints(sumMatrix("yPH"), "yPH", "ff0000")
-                        + linkTwoPoints(sumMatrix("yHH"), "yHH", "ff0000");
+                        + linkTwoPoints(sumMatrix("yPC"), "yPC")
+                        + linkTwoPoints(sumMatrix("yHC"), "yHC")
+                        + linkTwoPoints(sumMatrix("yPH"), "yPH")
+                        + linkTwoPoints(sumMatrix("yHH"), "yHH");
                 String destinationFile = "image.jpg";
                 // read the map image from Google
                 // then save it to a local file: image.jpg
@@ -296,7 +286,7 @@ public class Main {
         }
     }
 
-    private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbPeriodes, int nbProduits, double[][][][] cPH, double[][][][] cHC, double[][][][] cPC, double[][][][] cHH, File excelFile) throws Exception {
+    private static void calculateShippingCosts(Producer[] producers, Hub[] hubs, Customer[] customers, int nbPeriodes, int nbProduits, double[][][][] cPH, double[][][][] cHC, double[][][][] cPC, double[][][][] cHH, File excelFile) {
 
         double costPtoC = ExcelTools.readShippingCost(excelFile, "PtoC");
         double costHtoC = ExcelTools.readShippingCost(excelFile, "HtoC");
@@ -311,27 +301,37 @@ public class Main {
 
         useAPI = nbPaths <= 7500;
         if (useAPI) System.out.println("GMaps API Calls in progress, this might take a while...");
+
+        // Pour chaque producteur
         for (int i = 0; i < producers.length; i++) {
+            // S'il s'agit d'un producteur ficitf, on impose un cout de transfert à 0
             if (producers[i].getName().equals("Fiction")) {
                 coefP = 0;
             } else {
                 coefP = 1;
             }
+            // Pour chaque plateforme
             for (int j = 0; j < hubs.length; j++) {
+                // Calcul du cout de transfert
                 cost = (producers[i].getDistanceTo(hubs[j], useAPI) / 1000) * costPtoH * coefP;
+                // On applique ce cout à chaque produit de chaque periode
                 for (int k = 0; k < nbPeriodes; k++) {
                     for (int l = 0; l < nbProduits; l++) {
                         cPH[i][j][k][l] = cost;
                     }
                 }
             }
+            // Pour chaque client
+            // S'il s'agit d'un client ficitf, on impose un cout de transfert à 0
             for (int j = 0; j < customers.length; j++) {
                 if (customers[i].getName().equals("Fiction")) {
                     coefC = 0;
                 } else {
                     coefC = 1;
                 }
+                // Calcul du cout de transfert
                 cost = (producers[i].getDistanceTo(customers[j], useAPI) / 1000) * costPtoC * coefC * coefP;
+                // On applique ce cout à chaque produit de chaque periode
                 for (int l = 0; l < nbProduits; l++) {
                     for (int k = 0; k < nbPeriodes; k++) {
                         cPC[i][j][k][l] = cost;
@@ -341,22 +341,29 @@ public class Main {
             }
         }
 
+        // Pour chaque plateforme
         for (int i = 0; i < hubs.length; i++) {
+            // Pour chaque autre plateforme
             for (int j = 0; j < hubs.length; j++) {
+                // Calcul du cout de transfert
                 cost = (hubs[i].getDistanceTo(hubs[j], useAPI) / 1000) * costHtoH;
+                // On applique ce cout à chaque produit de chaque periode
                 for (int k = 0; k < nbPeriodes; k++) {
                     for (int l = 0; l < nbProduits; l++) {
                         cHH[i][j][k][l] = cost;
                     }
                 }
             }
+            // Pour chaque client
             for (int j = 0; j < customers.length; j++) {
                 if (customers[j].getName().equals("Fiction")) {
                     coefC = 0;
                 } else {
                     coefC = 1;
                 }
+                // Calcul du cout de transfert
                 cost = (hubs[i].getDistanceTo(customers[j], useAPI) / 1000) * costHtoC * coefC;
+                // On applique ce cout à chaque produit de chaque periode
                 for (int k = 0; k < nbPeriodes; k++) {
                     for (int l = 0; l < nbProduits; l++) {
                         cHC[i][j][k][l] = cost;
@@ -367,16 +374,23 @@ public class Main {
     }
 
     private static void calculateDemand(double[][][] demand, int start) {
+        // Pour chaque client
         for (int i = start; i < customers.length; i++) {
+            // On recupere sa demande
             Map<Integer, Map<String, Integer>> prodDemand = customers[i].getDemand();
+            // Pour chaque periode
             for (int j = 0; j < prodDemand.size(); j++) {
+                // On recupere la demande de cette periode
                 Map<String, Integer> period = prodDemand.get(j);
                 int k = 0;
+                // Pour chaque couple (produit,quantité)
                 for (Map.Entry<String, Integer> pair : period.entrySet()) {
                     double value = pair.getValue();
+                    // Si la valeur est superieure au bigM
                     if (value > bigM) {
                         bigM = 100 * (int) value;
                     }
+                    // Ajout de la demande dans la matrice qui correspond
                     demand[i][j][k] = (double) (int) value;
                     k++;
                 }
@@ -385,16 +399,23 @@ public class Main {
     }
 
     private static void calculateOffer(double[][][] offer, int start) {
+        // Pour chaque producteur
         for (int i = start; i < producers.length; i++) {
+            // On recupere son offre
             Map<Integer, Map<String, Integer>> prodSupply = producers[i].getSupply();
+            // Pour chaque periode
             for (int j = 0; j < prodSupply.size(); j++) {
+                // On recupere l'offre de cette periode
                 Map<String, Integer> period = prodSupply.get(j);
                 int k = 0;
+                // Pour chaque couple (produit,quantité)
                 for (Map.Entry<String, Integer> pair : period.entrySet()) {
                     double value = pair.getValue();
+                    // Si la valeur est superieure au bigM
                     if (value > bigM) {
                         bigM = 100 * (int) value;
                     }
+                    // Ajout de l'offre dans la matrice qui correspond
                     offer[i][j][k] = (double) (int) value;
                     k++;
                 }
@@ -402,10 +423,13 @@ public class Main {
         }
     }
 
-    private static String linkTwoPoints(int[][] matrix, String matrixType, String hexaColor) {
+    private static String linkTwoPoints(int[][] matrix, String matrixType) {
         String result = "";
+        // Pour chaque point source
         for (int i = 0; i < matrix.length; i++) {
+            // Pour chaque point de destination
             for (int j = 0; j < matrix[i].length; j++) {
+                // On ajoute le lien dans la configuration de l'URL s'il existe un flux entre les deux points et si aucun des deux points n'est fictif
                 if (matrixType.equals("yPC") && !producers[i].getName().equals("Fiction") && !customers[j].getName().equals("Fiction") && matrix[i][j] != 0) {
                     result += "&path=" + Double.toString(producers[i].getLatitude()) + "," + Double.toString(producers[i].getLongitude()) + "|" + Double.toString(customers[j].getLatitude()) + "," + Double.toString(customers[j].getLongitude());
                 }
@@ -418,6 +442,7 @@ public class Main {
                 if (matrixType.equals("yHH") && matrix[i][j] != 0 && chosenHubs.contains(hubs[i]) && chosenHubs.contains(hubs[j])) {
                     result += "&path=" + Double.toString(hubs[i].getLatitude()) + "," + Double.toString(hubs[i].getLongitude()) + "|" + Double.toString(hubs[j].getLatitude()) + "," + Double.toString(hubs[j].getLongitude());
                 }
+                // Si on depasse 8192 caracteres , soit la limite imposée par l'API de Google Maps , on annule l'affichage
                 if (result.length() > 8192) {
                     System.exit(1);
                 }

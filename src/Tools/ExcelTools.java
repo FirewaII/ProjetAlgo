@@ -22,7 +22,7 @@ public class ExcelTools {
 
     public static Location[] readLocations(File file, String sheetName) {
         // Initialization
-        Location[] locations = null;
+        Location[] locations;
         XSSFSheet sheet = openExcelFile(file, sheetName);
         XSSFCell cell;
         XSSFRow row = sheet.getRow(0);

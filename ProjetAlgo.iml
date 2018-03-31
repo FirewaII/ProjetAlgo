@@ -8,16 +8,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="gurobi" level="project" />
     <orderEntry type="library" name="stdlib" level="project" />
     <orderEntry type="library" name="poi-3" level="project" />
     <orderEntry type="library" name="lib" level="project" />
-    <orderEntry type="library" name="jom" level="project" />
     <orderEntry type="library" name="commons-math3-3.6" level="project" />
     <orderEntry type="library" name="ParallelColt" level="project" />
     <orderEntry type="library" name="jna-4.5.1" level="project" />
     <orderEntry type="library" name="JOM-0.3.1" level="project" />
-    <orderEntry type="library" name="cplex" level="project" />
-    <orderEntry type="library" name="oplall" level="project" />
   </component>
 </module>

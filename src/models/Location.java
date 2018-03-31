@@ -141,9 +141,6 @@ public class Location {
                         distanceResult = distance.getInt("value");
                     }
                 }
-//            System.out.println("NAMES : " + this.name + "  " + loc.name);
-//            System.out.println("NAMES : " + loc.getLatitude() + "  " + loc.getLongitude());
-//            System.out.println("API : " + distanceResult);
             } catch (Exception e) {
                 e.printStackTrace();
             }
